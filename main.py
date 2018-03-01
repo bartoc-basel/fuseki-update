@@ -268,15 +268,11 @@ for val in sheet.values:
         update.error_message = 'Der Input ist zu kurz. Ev. ist die End-of-Line Markierung nicht vorhanden. ' \
                                'Länge des Inputs: ' + str(len(val))
 
-    print(update.namespace, update.triple_count, update.error_message, update.error_type)
     sheet.values[count][GENERATED_NAMESPACE] = update.namespace
     sheet.values[count][TRIPLE_COUNT] = update.triple_count
     sheet.values[count][ERROR_TYPE] = update.error_type
     sheet.values[count][ERROR] = update.error_message
     sheet.values[count][SKOSMOS_ENTRY] = update.skosmos_entry
-
-    print(sheet.values[count])
-    # clean up skosify temporary file.
     try:
         os.remove(sheet_options['temp'] + 'temporary.ttl')
     except FileNotFoundError:
