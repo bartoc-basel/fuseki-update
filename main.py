@@ -181,7 +181,7 @@ class FusekiUpdate(object):
         return file_name
 
     def upload_file(self):
-        with open('upload.ttl', 'r', encoding='utf-8') as file:
+        with open(self.temp_path + 'upload.ttl', 'r', encoding='utf-8') as file:
             data = {'name': ('upload.ttl', file.read(), self.mime_type)}
             basic_url = 'http://localhost:3030/skosmos/data?graph=' + self.graph.namespace
 
