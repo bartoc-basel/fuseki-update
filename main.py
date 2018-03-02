@@ -75,7 +75,9 @@ class SkosifiedGraph(object):
                                        eliminate_redundancy=True, break_cycles=True, keep_related=False,
                                        cleanup_classes=True, cleanup_properties=True, cleanup_unreachable=True)
         except SystemExit:
-            raise SkosifyError()
+            self.logger.critical('Was unable to skosify %s', self.name)
+            self.update.error_type = 'Skosify Critical Error'
+            self.update.error_message = 'Skosify was unable to deal with this vocabulary. Check out the log why this is.'
         finally:
             # TODO: does this always run?
             self.rdf.serialize(destination=self.temp_path + 'upload.ttl', format='ttl', encoding='utf-8')
@@ -120,15 +122,12 @@ class FusekiUpdate(object):
         self.graph = SkosifiedGraph(file_name, self.file_end, self.title, self.namespace, self.temp_path)
         try:
             self.graph.process()
-            self.sheet_updates.namespace = str(self.graph.namespace)
         except NoNamespaceDetectedError:
             self.sheet_updates.error_type = 'NO NAMESPACE DETECTED'
             self.sheet_updates.error_message = 'Es konnte kein Namespace gefunden werden. Bitte im Feld ' \
                                                '"Definierter Namespace" angeben.'
-        except SkosifyError:
-            self.sheet_updates.error_type = 'SKOSIFY ERROR'
-            self.sheet_updates.error_message = 'Skosify konnte nicht mit diesem Vokabular umgehen. ' \
-                                               'Siehe Fehlermeldungen auf dem Server.'
+
+        self.sheet_updates.namespace = str(self.graph.namespace)
 
         self.upload_file()
         self.sheet_updates.skosmos_entry = self.create_skosmos_entry()
@@ -153,7 +152,6 @@ class FusekiUpdate(object):
         else:
             self.sheet_updates.error_type = "FILE TYPE ERROR"
             self.sheet_updates.error_message = "Invalid MIME Type: expected RDF, TTL, N3 or NT."
-            logging.exception('Wrong MIME Type in file.')
             raise InvalidMIMETypeError
 
     def download_file(self, url: str) -> str:
@@ -161,7 +159,6 @@ class FusekiUpdate(object):
         if download_file_response.status_code != 200:
             self.sheet_updates.error_type = 'DOWNLOAD ERROR (' + str(download_file_response.status_code) + ')'
             self.sheet_updates.error_message = download_file_response.text
-            logging.exception('DownloadError encountered:')
             raise DownloadError('Was unable to download the file from ' + url)
 
         # save downloaded file locally to ensure that it is unzipped
@@ -255,11 +252,12 @@ for val in sheet.values:
             if val[READY] == 'y':
                 FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], val[DEFINED_NAMESPACE],
                              sheet_options['temp'], update).process()
+        except (InvalidMIMETypeError, DownloadError, FusekiUploadError, SkosifyError, NoNamespaceDetectedError) as error:
+            logging.exception(str(error))
         except Exception as error:
             update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
             update.error_message = str(error)
             logging.exception('Got an unknown exception: ')
-            raise
         finally:
             count += 1
 
