@@ -53,8 +53,8 @@ class SheetUpdate(object):
 
 class SkosifiedGraph(object):
 
-    def __init__(self, file_name: str, format: str, name: str, namespace: str, temp_path: str, default_language=None,
-                 logger=logging.getLogger('bartoc-skosify')):
+    def __init__(self, file_name: str, format: str, name: str, namespace: str, temp_path: str, default_language: str,
+                 update: SheetUpdate, logger=logging.getLogger('bartoc-skosify')):
         self.logger = logger
         self.namespace = namespace
         self.file_name = file_name
@@ -62,6 +62,7 @@ class SkosifiedGraph(object):
         self.format = format
         self.name = name
         self.default_language = default_language
+        self.update = update
 
         self.rdf = Graph()
 
@@ -119,7 +120,9 @@ class FusekiUpdate(object):
     def process(self):
         self.mime_type = self.check_mime_type(self.file_end)
         file_name = self.download_file(self.url)
-        self.graph = SkosifiedGraph(file_name, self.file_end, self.title, self.namespace, self.temp_path)
+        # TODO: Implement language.
+        self.graph = SkosifiedGraph(file_name, self.file_end, self.title, self.namespace, self.temp_path, None,
+                                    self.sheet_updates)
         try:
             self.graph.process()
         except NoNamespaceDetectedError:
