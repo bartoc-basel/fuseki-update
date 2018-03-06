@@ -263,7 +263,7 @@ for val in sheet.values:
         except Exception as error:
             update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
             update.error_message = str(error)
-            logging.exception('Got an unknown exception: ')
+            logging.exception('Unhandled exception occurred: ')
         finally:
             count += 1
 
