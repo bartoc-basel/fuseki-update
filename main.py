@@ -37,7 +37,6 @@ SKOSMOS_ENTRY = 10
 class InvalidMIMETypeError(Exception): pass
 class DownloadError(Exception): pass
 class FusekiUploadError(Exception): pass
-class SkosifyError(Exception): pass
 class NoNamespaceDetectedError(Exception): pass
 
 
@@ -53,7 +52,7 @@ class SheetUpdate(object):
 
 class SkosifiedGraph(object):
 
-    def __init__(self, file_name: str, format: str, name: str, namespace: str, temp_path: str, default_language: str,
+    def __init__(self, file_name: str, format: str, name: str, namespace: str, temp_path: str, default_language,
                  update: SheetUpdate, logger=logging.getLogger('bartoc-skosify')):
         self.logger = logger
         self.namespace = namespace
@@ -86,14 +85,15 @@ class SkosifiedGraph(object):
     def detect_namespace(self):
         concept = self.rdf.value(None, RDF.type, SKOS.Concept, any=True)
         if concept is None:
-            self.logger.critical('Namespace auto-detection failed. Define namespace in sheet.')
-            raise NoNamespaceDetectedError()
+            concept = self.rdf.value(None, RDF.type, SKOS.ConceptScheme, any=True)
+            if concept is None:
+                raise NoNamespaceDetectedError('Could not detect a namespace for %s, because there are no SKOS Concepts'
+                                               ' or SKOS Concept Schemes defined.', self.name)
 
         local_name = concept.split('/')[-1].split('#')[-1]
         namespace = URIRef(concept.replace(local_name, ''))
         if namespace.strip() == '':
-            self.logger.critical('Namespace auto-detection failed. Define namespace in sheet.')
-            raise NoNamespaceDetectedError()
+            raise NoNamespaceDetectedError('Could not detect a namespace for %s, because the URI is not valid.', self.name)
 
         self.logger.info('Namespace detection successful: %s.', namespace)
         self.namespace = namespace
@@ -102,7 +102,8 @@ class SkosifiedGraph(object):
 class FusekiUpdate(object):
 
     def __init__(self, title: str, url: str, file_type: str, short_name: str, defined_namespace: str, temp_path: str,
-                 update: SheetUpdate):
+                 update: SheetUpdate, logger=logging.getLogger('fuseki-update')):
+        self.logger = logger
         self.title = title.strip()
         self.url = url.strip()
         self.short_name = short_name.strip()
@@ -125,10 +126,10 @@ class FusekiUpdate(object):
                                     self.sheet_updates)
         try:
             self.graph.process()
-        except NoNamespaceDetectedError:
+        except NoNamespaceDetectedError as error:
+            self.logger.exception(str(error))
             self.sheet_updates.error_type = 'NO NAMESPACE DETECTED'
-            self.sheet_updates.error_message = 'Es konnte kein Namespace gefunden werden. Bitte im Feld ' \
-                                               '"Definierter Namespace" angeben.'
+            self.sheet_updates.error_message = str(error)
 
         self.sheet_updates.namespace = str(self.graph.namespace)
 
@@ -154,8 +155,9 @@ class FusekiUpdate(object):
             return NT_MIME_TYPE
         else:
             self.sheet_updates.error_type = "FILE TYPE ERROR"
-            self.sheet_updates.error_message = "Invalid MIME Type: expected RDF, TTL, N3 or NT."
-            raise InvalidMIMETypeError
+            self.sheet_updates.error_message = 'Invalid MIME Type: expected RDF, TTL, N3 or NT, found ' + \
+                                               file_type + '.'
+            raise InvalidMIMETypeError('Invalid MIME Type found: %s.', file_type)
 
     def download_file(self, url: str) -> str:
         download_file_response = requests.get(url)
@@ -195,7 +197,7 @@ class FusekiUpdate(object):
             if response.status_code < 200 or response.status_code >= 300:
                 self.sheet_updates.error_type = 'UPLOAD ERROR ' + str(response.status_code)
                 self.sheet_updates.error_message = 'Could not upload item to fuseki: ' + str(response.text)
-                raise FusekiUploadError()
+                raise FusekiUploadError('Could not upload vocabulary %s.', self.title)
 
             self.sheet_updates.triple_count = str(json.loads(response.text)['tripleCount'])
 
@@ -255,7 +257,7 @@ for val in sheet.values:
             if val[READY] == 'y':
                 FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], val[DEFINED_NAMESPACE],
                              sheet_options['temp'], update).process()
-        except (InvalidMIMETypeError, DownloadError, FusekiUploadError, SkosifyError, NoNamespaceDetectedError) as error:
+        except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError) as error:
             logging.exception(str(error))
         except Exception as error:
             update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
