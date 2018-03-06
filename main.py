@@ -2,6 +2,7 @@ import requests
 from rdflib import Graph, URIRef
 from rdflib.namespace import RDF, SKOS
 from rdflib.util import guess_format
+from rdflib.exceptions import ParserError
 import skosify
 import os.path
 import gzip
@@ -257,7 +258,7 @@ for val in sheet.values:
             if val[READY] == 'y':
                 FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], val[DEFINED_NAMESPACE],
                              sheet_options['temp'], update).process()
-        except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError) as error:
+        except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError, ParserError) as error:
             logging.exception(str(error))
         except Exception as error:
             update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
