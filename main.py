@@ -3,6 +3,7 @@ from rdflib import Graph, URIRef
 from rdflib.namespace import RDF, SKOS
 from rdflib.util import guess_format
 from rdflib.exceptions import ParserError
+from rdflib.plugins.parsers.notation3 import BadSyntax
 import skosify
 import os.path
 import gzip
@@ -79,6 +80,7 @@ class SkosifiedGraph(object):
             self.logger.critical('Was unable to skosify %s', self.name)
             self.update.error_type = 'Skosify Critical Error'
             self.update.error_message = 'Skosify was unable to deal with this vocabulary. Check out the log why this is.'
+            pass
         finally:
             # TODO: does this always run?
             self.rdf.serialize(destination=self.temp_path + 'upload.ttl', format='ttl', encoding='utf-8')
@@ -260,10 +262,17 @@ for val in sheet.values:
                              sheet_options['temp'], update).process()
         except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError, ParserError) as error:
             logging.exception(str(error))
+            pass
+        except BadSyntax as error:
+            update.error_type = 'BAD SYNTAX'
+            update.error_message = 'This file contains invalid syntax.'
+            logging.exception(str(error))
+            pass
         except Exception as error:
             update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
             update.error_message = str(error)
             logging.exception('Unhandled exception occurred: ')
+            pass
         finally:
             count += 1
 
