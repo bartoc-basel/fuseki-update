@@ -79,7 +79,8 @@ class SkosifiedGraph(object):
         except SystemExit:
             self.logger.critical('Was unable to skosify %s', self.name)
             self.update.error_type = 'Skosify Critical Error'
-            self.update.error_message = 'Skosify was unable to deal with this vocabulary. Check out the log why this is.'
+            self.update.error_message = 'Skosify was unable to deal with this vocabulary. ' \
+                                        'Check out the log why this is.'
             pass
         finally:
             # TODO: does this always run?
@@ -90,13 +91,14 @@ class SkosifiedGraph(object):
         if concept is None:
             concept = self.rdf.value(None, RDF.type, SKOS.ConceptScheme, any=True)
             if concept is None:
-                raise NoNamespaceDetectedError('Could not detect a namespace for %s, because there are no SKOS Concepts'
-                                               ' or SKOS Concept Schemes defined.', self.name)
+                raise NoNamespaceDetectedError('Could not detect a namespace for ' + self.name +
+                                               ', because there are no SKOS Concepts or SKOS Concept Schemes defined.')
 
         local_name = concept.split('/')[-1].split('#')[-1]
         namespace = URIRef(concept.replace(local_name, ''))
         if namespace.strip() == '':
-            raise NoNamespaceDetectedError('Could not detect a namespace for %s, because the URI is not valid.', self.name)
+            raise NoNamespaceDetectedError('Could not detect a namespace for ' + self.name +
+                                           ', because the URI is not valid.')
 
         self.logger.info('Namespace detection successful: %s.', namespace)
         self.namespace = namespace
@@ -160,7 +162,7 @@ class FusekiUpdate(object):
             self.sheet_updates.error_type = "FILE TYPE ERROR"
             self.sheet_updates.error_message = 'Invalid MIME Type: expected RDF, TTL, N3 or NT, found ' + \
                                                file_type + '.'
-            raise InvalidMIMETypeError('Invalid MIME Type found: %s.', file_type)
+            raise InvalidMIMETypeError('Invalid MIME Type found: ' + file_type + '.')
 
     def download_file(self, url: str) -> str:
         download_file_response = requests.get(url)
@@ -200,7 +202,7 @@ class FusekiUpdate(object):
             if response.status_code < 200 or response.status_code >= 300:
                 self.sheet_updates.error_type = 'UPLOAD ERROR ' + str(response.status_code)
                 self.sheet_updates.error_message = 'Could not upload item to fuseki: ' + str(response.text)
-                raise FusekiUploadError('Could not upload vocabulary %s.', self.title)
+                raise FusekiUploadError('Could not upload vocabulary ' + self.title + '.')
 
             self.sheet_updates.triple_count = str(json.loads(response.text)['tripleCount'])
 
