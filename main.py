@@ -165,7 +165,14 @@ class FusekiUpdate(object):
             raise InvalidMIMETypeError('Invalid MIME Type found: ' + file_type + '.')
 
     def download_file(self, url: str) -> str:
-        download_file_response = requests.get(url)
+        try:
+            download_file_response = requests.get(url)
+        except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as error:
+            self.sheet_updates.error_type = 'CONNECTION ERROR'
+            self.sheet_updates.error_message = 'Could not connect to ' + url
+            self.logger.exception(error)
+            raise DownloadError('Could not download from ' + url + ' because of a connection error.')
+
         if download_file_response.status_code != 200:
             self.sheet_updates.error_type = 'DOWNLOAD ERROR (' + str(download_file_response.status_code) + ')'
             self.sheet_updates.error_message = download_file_response.text
