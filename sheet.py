@@ -49,7 +49,7 @@ class GoogleSheet(object):
         except HttpError as http_error:
             self.logger.critical(str(http_error))
 
-    def store_sheet(self, cells: str):
+    def store_sheet(self):
         """
         Store all values in the sheet.
 
