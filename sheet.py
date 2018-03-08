@@ -57,18 +57,48 @@ class GoogleSheet(object):
                         columns or only specific rows (like A3:F17).
         """
         # It is necessary to pack this value like this as this is what the API expects.
-        pack = list()
-        pack.append(self.values)
-        body = dict()
-        body['values'] = list()
-        body['values'].append(pack)
+        range = 'A1:' + self.number2letter(max([len(value) for value in self.values]))+ str(len(self.values))
+        data = [
+            {
+                'range': range,
+                'values': self.values
+            }
+        ]
+
+        body = {
+            'includeValuesInResponse': True,
+            'responseValueRenderOption': 'FORMATTED_VALUE',
+            'valueInputOption': 'USER_ENTERED',
+            'data': data
+        }
+
         try:
-            self.service.spreadsheets().values().update(spreadsheetId=self.sheet_id,
-                                                        includeValuesInResponse=True,
-                                                        responseValueRenderOption='FORMATTED_VALUE',
-                                                        valueInputOption='USER_ENTERED',
-                                                        body=body,
-                                                        range=cells).execute()
+            self.service.spreadsheets().values().\
+                batchUpdate(spreadsheetId=self.sheet_id, body=body).execute()
         except HttpError as http_error:
             self.logger.critical(str(http_error))
 
+    @staticmethod
+    def number2letter(n: int) -> str:
+        """Return the letter combination corresponding to the input number in a sheet.
+
+        >>> GoogleSheet.number2letter(1)
+        'A'
+        >>> GoogleSheet.number2letter(12)
+        'L'
+        >>> GoogleSheet.number2letter(30)
+        'AD'
+        """
+        number = n
+        result = ''
+        while number > 0:
+            modulo = (number - 1) % 26
+            result = chr(65 + modulo) + result
+            number = int((number - modulo) / 26)
+
+        return result
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
