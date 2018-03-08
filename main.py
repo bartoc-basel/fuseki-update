@@ -300,4 +300,4 @@ for val in sheet.values:
     except FileNotFoundError:
         pass
 
-sheet.store_sheet(sheet_options['range'])
+    sheet.store_sheet(sheet_options['range'])
