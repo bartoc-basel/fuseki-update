@@ -261,8 +261,12 @@ logging.basicConfig(**log_options)
 sheet = GoogleSheet(**authorization_options)
 sheet.load_sheet(sheet_options['range'])
 
-count = 1
+count = 0
 for val in sheet.values:
+    if count == 0:
+        count += 1
+        continue
+
     update = SheetUpdate()
     if len(val) == int(sheet_options['sheet_length']):
         try:
@@ -282,9 +286,6 @@ for val in sheet.values:
             update.error_message = str(error)
             logging.exception('Unhandled exception occurred: ')
             pass
-        finally:
-            count += 1
-
     else:
         update.error_type = 'Missing Input'
         update.error_message = 'Der Input ist zu kurz. Ev. ist die End-of-Line Markierung nicht vorhanden. ' \
@@ -301,3 +302,4 @@ for val in sheet.values:
         pass
 
     sheet.store_sheet(sheet_options['range'])
+    count += 1
