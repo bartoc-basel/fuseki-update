@@ -118,6 +118,8 @@ class SkosifiedGraph(object):
 
         Will first find a random concept or concept scheme and then extract the base name space from it.
 
+        # TODO: Make sure that namespace is only loaded once. And then read from generated field.
+
         :raises NoNamespaceDetectedError: If no namespace can be found.
         """
         concept = self.rdf.value(None, RDF.type, SKOS.Concept, any=True)
@@ -307,93 +309,104 @@ class FusekiUpdate(object):
         return result
 
 
-# Load config file and parse options. These are stored in /data/skosmos/default.cfg
-config = ConfigParser(interpolation=None)
-config.read(sys.argv[1])
+try:
+    # Load config file and parse options. These are stored in /data/skosmos/default.cfg
+    config = ConfigParser(interpolation=None)
+    config.read(sys.argv[1])
 
-# Google Sheet Authorization options.
-authorization_options = dict()
-for key, val in config.items('authorization'):
-    authorization_options[key] = val
+    # Google Sheet Authorization options.
+    authorization_options = dict()
+    for key, val in config.items('authorization'):
+        authorization_options[key] = val
 
-# The range of the sheet and some other options.
-sheet_options = dict()
-for key, val in config.items('sheet'):
-    sheet_options[key] = val
+    # The range of the sheet and some other options.
+    sheet_options = dict()
+    for key, val in config.items('sheet'):
+        sheet_options[key] = val
 
-# options for what should be logged.
-log_options = dict()
-for key, val in config.items('logger'):
-    log_options[key] = val
+    # options for what should be logged.
+    log_options = dict()
+    for key, val in config.items('logger'):
+        log_options[key] = val
 
-# set logging level.
-if 'level' in log_options:
-    if log_options['level'] == 'debug':
-        log_options['level'] = logging.DEBUG
-    if log_options['level'] == 'info':
-        log_options['level'] = logging.INFO
-    if log_options['level'] == 'warning':
-        log_options['level'] = logging.WARNING
-    if log_options['level'] == 'error':
-        log_options['level'] = logging.ERROR
-    if log_options['level'] == 'critical':
-        log_options['level'] = logging.CRITICAL
+    # set logging level.
+    if 'level' in log_options:
+        if log_options['level'] == 'debug':
+            log_options['level'] = logging.DEBUG
+        if log_options['level'] == 'info':
+            log_options['level'] = logging.INFO
+        if log_options['level'] == 'warning':
+            log_options['level'] = logging.WARNING
+        if log_options['level'] == 'error':
+            log_options['level'] = logging.ERROR
+        if log_options['level'] == 'critical':
+            log_options['level'] = logging.CRITICAL
 
-logging.basicConfig(**log_options)
+    logging.basicConfig(**log_options)
 
-sheet = GoogleSheet(**authorization_options)
-sheet.load_sheet(sheet_options['range'])
+    sheet = GoogleSheet(**authorization_options)
+    sheet.load_sheet(sheet_options['range'])
 
 
-# run through each row of the file and try to load the vocabulary.
-# Updates the sheet each iteration to ensure that no data is lost if the script ends prematurely.
+    # run through each row of the file and try to load the vocabulary.
+    # Updates the sheet each iteration to ensure that no data is lost if the script ends prematurely.
 
-# count stores the current row count.
-count = 0
-for val in sheet.values:
-    if count == 0:
-        count += 1
-        continue
+    # count stores the current row count.
+    count = 0
+    for val in sheet.values:
+        if count == 0:
+            count += 1
+            continue
 
-    update = SheetUpdate()
-    if len(val) == int(sheet_options['sheet_length']):
+        update = SheetUpdate()
+        if len(val) == int(sheet_options['sheet_length']):
+            try:
+                # ignore vocabularies which are not ready.
+                if val[READY] == 'y':
+                    FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], val[DEFINED_NAMESPACE],
+                                 sheet_options['temp'], update).process()
+            except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError, ParserError) as error:
+                logging.exception(str(error))
+                pass
+            # exception made by a rdflib parser plugin.
+            except BadSyntax as error:
+                update.error_type = 'BAD SYNTAX'
+                update.error_message = 'This file contains invalid syntax.'
+                logging.exception(str(error))
+                pass
+            # catch all unhandled exceptions. This should be updated as new exceptions occur.
+            except Exception as error:
+                update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
+                update.error_message = str(error)
+                logging.exception('Unhandled exception occurred: ')
+                pass
+        else:
+            # if a row does not have the full input length it is ignored.
+            update.error_type = 'Missing Input'
+            update.error_message = 'Der Input ist zu kurz. Ev. ist die End-of-Line Markierung nicht vorhanden. ' \
+                                   'Länge des Inputs: ' + str(len(val))
+
+        # update the sheet with the values gathered. some of these may be empty.
+        sheet.values[count][GENERATED_NAMESPACE] = update.namespace
+        sheet.values[count][TRIPLE_COUNT] = update.triple_count
+        sheet.values[count][ERROR_TYPE] = update.error_type
+        sheet.values[count][ERROR] = update.error_message
+        sheet.values[count][SKOSMOS_ENTRY] = update.skosmos_entry
+
+        # clean temporary file.
         try:
-            # ignore vocabularies which are not ready.
-            if val[READY] == 'y':
-                FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], val[DEFINED_NAMESPACE],
-                             sheet_options['temp'], update).process()
-        except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError, ParserError) as error:
-            logging.exception(str(error))
+            os.remove(sheet_options['temp'] + 'temporary.ttl')
+        except FileNotFoundError:
             pass
-        # exception made by a rdflib parser plugin.
-        except BadSyntax as error:
-            update.error_type = 'BAD SYNTAX'
-            update.error_message = 'This file contains invalid syntax.'
-            logging.exception(str(error))
-            pass
-        # catch all unhandled exceptions. This should be updated as new exceptions occur.
-        except Exception as error:
-            update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
-            update.error_message = str(error)
-            logging.exception('Unhandled exception occurred: ')
-            pass
-    else:
-        # if a row does not have the full input length it is ignored.
-        update.error_type = 'Missing Input'
-        update.error_message = 'Der Input ist zu kurz. Ev. ist die End-of-Line Markierung nicht vorhanden. ' \
-                               'Länge des Inputs: ' + str(len(val))
 
-    # update the sheet with the values gathered. some of these may be empty.
-    sheet.values[count][GENERATED_NAMESPACE] = update.namespace
-    sheet.values[count][TRIPLE_COUNT] = update.triple_count
-    sheet.values[count][ERROR_TYPE] = update.error_type
-    sheet.values[count][ERROR] = update.error_message
-    sheet.values[count][SKOSMOS_ENTRY] = update.skosmos_entry
+        # ignore exceptions when it cannot be uploaded.
+        try:
+            sheet.store_sheet()
+        except Exception:
+            logging.exception('Could not upload files to sheet:')
+            pass
+        count += 1
 
-    # clean temporary file.
-    try:
-        os.remove(sheet_options['temp'] + 'temporary.ttl')
-    except FileNotFoundError:
-        pass
-    sheet.store_sheet()
-    count += 1
+except Exception:
+    logging.exception('Something unexpected happened and the application has ended early:')
+
