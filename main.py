@@ -5,7 +5,7 @@ from rdflib.util import guess_format
 from rdflib.exceptions import ParserError
 from rdflib.plugins.parsers.notation3 import BadSyntax
 import skosify
-import os.path
+import os
 import gzip
 import json
 import logging
@@ -91,8 +91,16 @@ class SkosifiedGraph(object):
 
         :raises Various errors when the file can't be parsed or serialized.
         """
-        self.rdf.parse(self.file_name, format=guess_format(self.format))
-        if self.namespace == '':  # this is empty if no namespace was defined in the file.
+        try:
+            self.rdf.parse(self.file_name, format=guess_format(self.format))
+        except (ParserError, BadSyntax) as error:
+            self.update.error_type = 'PARSER ERROR'
+            self.update.error_message = str(error)
+            self.logger.exception('Could not parse vocabulary %s:', self.name)
+            return
+            # if parser was not successful there is no point in continuing.
+
+        if self.namespace == '':  # this is empty if no namespace was defined or generated in the sheet.
             self.detect_namespace()
         try:
             # Does some magic to the vocabulary.
@@ -111,14 +119,14 @@ class SkosifiedGraph(object):
         finally:
             # Writes the graph to disk. independent of whether skosify was successful or not.
             self.rdf.serialize(destination=self.temp_path + 'upload.ttl', format='ttl', encoding='utf-8')
+            self.file_name = 'upload.ttl'
+            self.format = 'ttl'
 
     def detect_namespace(self):
         """
         Attempts to extract a base namespace from the vocabulary graph.
 
         Will first find a random concept or concept scheme and then extract the base name space from it.
-
-        # TODO: Make sure that namespace is only loaded once. And then read from generated field.
 
         :raises NoNamespaceDetectedError: If no namespace can be found.
         """
@@ -163,6 +171,7 @@ class FusekiUpdate(object):
         self.file_end = file_type.strip().lower()
         self.namespace = defined_namespace.strip()
         self.temp_path = temp_path
+        self.local_file_name = ''
 
         self.sheet_updates = update
         if self.namespace == '':
@@ -181,9 +190,9 @@ class FusekiUpdate(object):
         5. Clean up temporary files.
         """
         self.mime_type = self.check_mime_type(self.file_end)
-        file_name = self.download_file(self.url)
+        self.download_file(self.url)
         # TODO: Implement language.
-        self.graph = SkosifiedGraph(file_name, self.file_end, self.title, self.namespace, self.temp_path, None,
+        self.graph = SkosifiedGraph(self.local_file_name, self.file_end, self.title, self.namespace, self.temp_path, None,
                                     self.sheet_updates)
         try:
             self.graph.process()
@@ -194,14 +203,15 @@ class FusekiUpdate(object):
 
         self.sheet_updates.namespace = str(self.graph.namespace)
 
+        if self.graph.namespace == '':
+            raise NoNamespaceDetectedError('Could not determine a namespace. Please provide one.')
+
+        # See if the file type has changed. This happens if skosify is successful.
+        self.mime_type = self.check_mime_type(self.graph.format)
+        self.local_file_name = self.graph.file_name
+
         self.upload_file()
         self.sheet_updates.skosmos_entry = self.create_skosmos_entry()
-
-        # clean up skosify temporary file.
-        try:
-            os.remove(file_name)
-        except FileNotFoundError:
-            pass
 
     def check_mime_type(self, file_type):
         """
@@ -222,7 +232,7 @@ class FusekiUpdate(object):
                                                file_type + '.'
             raise InvalidMIMETypeError('Invalid MIME Type found: ' + file_type + '.')
 
-    def download_file(self, url: str) -> str:
+    def download_file(self, url: str):
         """
         Download the file from the given url.
 
@@ -233,7 +243,6 @@ class FusekiUpdate(object):
         Write file to disk.
 
         :param url:     The url.
-        :return:        The name of the file in which it was stored on disk.
 
         :raises DownloadError   If the download could not be completed.
         """
@@ -264,7 +273,8 @@ class FusekiUpdate(object):
 
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(text)
-        return file_name
+
+        self.local_file_name = file_name
 
     def upload_file(self):
         """
@@ -274,8 +284,8 @@ class FusekiUpdate(object):
 
         :raises FusekiUploadError  if response status code is lower than 200 or higher than 300.
         """
-        with open(self.temp_path + 'upload.ttl', 'r', encoding='utf-8') as file:
-            data = {'name': ('upload.ttl', file.read(), self.mime_type)}
+        with open(self.temp_path + self.local_file_name, 'r', encoding='utf-8') as file:
+            data = {'name': (self.local_file_name, file.read(), self.mime_type)}
             basic_url = 'http://localhost:3030/skosmos/data?graph=' + self.graph.namespace
 
             # delete the graph if it exists. Otherwise updates to values would get added as additional triples.
@@ -363,15 +373,20 @@ try:
             try:
                 # ignore vocabularies which are not ready.
                 if val[READY] == 'y':
-                    FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], val[DEFINED_NAMESPACE],
+
+                    # First tries to assign the defined namespace. If this is empty then the generated one will be added.
+                    # This is to ensure, that namespaces stay stable across re-runs of the script.
+                    # This way only a deliberate change will change the namespace.
+                    # The reason is, that the namespace is used as Graph name. So if this changes the old graph must be deleted manually.
+                    namespace = ''
+                    if val[DEFINED_NAMESPACE] != '':
+                        namespace = val[DEFINED_NAMESPACE]
+                    else:
+                        namespace = val[GENERATED_NAMESPACE]
+
+                    FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], namespace,
                                  sheet_options['temp'], update).process()
-            except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError, ParserError) as error:
-                logging.exception(str(error))
-                pass
-            # exception made by a rdflib parser plugin.
-            except BadSyntax as error:
-                update.error_type = 'BAD SYNTAX'
-                update.error_message = 'This file contains invalid syntax.'
+            except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError) as error:
                 logging.exception(str(error))
                 pass
             # catch all unhandled exceptions. This should be updated as new exceptions occur.
@@ -393,20 +408,17 @@ try:
         sheet.values[count][ERROR] = update.error_message
         sheet.values[count][SKOSMOS_ENTRY] = update.skosmos_entry
 
-        # clean temporary file.
-        try:
-            os.remove(sheet_options['temp'] + 'temporary.ttl')
-        except FileNotFoundError:
-            pass
-
         # ignore exceptions when it cannot be uploaded.
         try:
             sheet.store_sheet()
         except Exception:
-            logging.exception('Could not upload files to sheet:')
+            logging.critical('Could not upload files to sheet:', exc_info=True)
             pass
         count += 1
 
+        for root, dirs, files in os.walk(sheet_options['temp']):
+            for file in files:
+                os.remove(root + file)
 except Exception:
-    logging.exception('Something unexpected happened and the application has ended early:')
+    logging.critical('Something unexpected happened and the application has ended early:', exc_info=True)
 
