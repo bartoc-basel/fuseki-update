@@ -15,7 +15,9 @@ import zipfile
 
 from configparser import ConfigParser
 
-from sheet import GoogleSheet
+import time
+import pygsheets
+import googleapiclient.errors
 
 # The MIME Types for the possible rdf file formats. Needed to upload a file on apache jena.
 TURTLE_MIME_TYPE = 'application/x-turtle'
@@ -254,7 +256,7 @@ class FusekiUpdate(object):
             self.logger.exception(error)
             raise DownloadError('Could not download from ' + url + ' because of a connection error.')
 
-        if download_file_response.status_code != 200:
+        if not download_file_response.ok:
             self.sheet_updates.error_type = 'DOWNLOAD ERROR (' + str(download_file_response.status_code) + ')'
             self.sheet_updates.error_message = download_file_response.text
             raise DownloadError('Was unable to download the file from ' + url)
@@ -295,7 +297,7 @@ class FusekiUpdate(object):
             # upload graph to server.
             response = requests.request('POST', basic_url, files=data)
 
-            if response.status_code < 200 or response.status_code >= 300:
+            if not response.ok:
                 self.sheet_updates.error_type = 'UPLOAD ERROR ' + str(response.status_code)
                 self.sheet_updates.error_message = 'Could not upload item to fuseki: ' + str(response.text)
                 raise FusekiUploadError('Could not upload vocabulary ' + self.title + '.')
@@ -324,11 +326,6 @@ try:
     config = ConfigParser(interpolation=None)
     config.read(sys.argv[1])
 
-    # Google Sheet Authorization options.
-    authorization_options = dict()
-    for key, val in config.items('authorization'):
-        authorization_options[key] = val
-
     # The range of the sheet and some other options.
     sheet_options = dict()
     for key, val in config.items('sheet'):
@@ -354,71 +351,67 @@ try:
 
     logging.basicConfig(**log_options)
 
-    sheet = GoogleSheet(**authorization_options)
-    sheet.load_sheet(sheet_options['range'])
+    c = pygsheets.authorize(outh_nonlocal=True)
+    sheet = c.open(sheet_options['sheet_name']).sheet1
 
-
-    # run through each row of the file and try to load the vocabulary.
-    # Updates the sheet each iteration to ensure that no data is lost if the script ends prematurely.
-
-    # count stores the current row count.
-    count = 0
-    for val in sheet.values:
-        if count == 0:
-            count += 1
-            continue
-
-        update = SheetUpdate()
-        if len(val) == int(sheet_options['sheet_length']):
-            try:
-                # ignore vocabularies which are not ready.
-                if val[READY] == 'y':
-
-                    # First tries to assign the defined namespace. If this is empty then the generated one will be added.
-                    # This is to ensure, that namespaces stay stable across re-runs of the script.
-                    # This way only a deliberate change will change the namespace.
-                    # The reason is, that the namespace is used as Graph name. So if this changes the old graph must be deleted manually.
-                    namespace = ''
-                    if val[DEFINED_NAMESPACE] != '':
-                        namespace = val[DEFINED_NAMESPACE]
-                    else:
-                        namespace = val[GENERATED_NAMESPACE]
-
-                    FusekiUpdate(val[TITLE], val[URL], val[FILE_TYPE], val[SHORT_NAME], namespace,
-                                 sheet_options['temp'], update).process()
-            except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError) as error:
-                logging.exception(str(error))
-                pass
-            # catch all unhandled exceptions. This should be updated as new exceptions occur.
-            except Exception as error:
-                update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
-                update.error_message = str(error)
-                logging.exception('Unhandled exception occurred: ')
-                pass
-        else:
-            # if a row does not have the full input length it is ignored.
-            update.error_type = 'Missing Input'
-            update.error_message = 'Der Input ist zu kurz. Ev. ist die End-of-Line Markierung nicht vorhanden. ' \
-                                   'Länge des Inputs: ' + str(len(val))
-
-        # update the sheet with the values gathered. some of these may be empty.
-        sheet.values[count][GENERATED_NAMESPACE] = update.namespace
-        sheet.values[count][TRIPLE_COUNT] = update.triple_count
-        sheet.values[count][ERROR_TYPE] = update.error_type
-        sheet.values[count][ERROR] = update.error_message
-        sheet.values[count][SKOSMOS_ENTRY] = update.skosmos_entry
-
-        # ignore exceptions when it cannot be uploaded.
+    num_col = len(sheet.get_col(1))
+    for i in range(2, num_col):
         try:
-            sheet.store_sheet()
-        except Exception:
-            logging.critical('Could not upload files to sheet:', exc_info=True)
-            pass
-        count += 1
+            row = sheet.get_row(i)
+        except googleapiclient.errors.HttpError:
+            time.sleep(100)
+            row = sheet.get_row(i)
+        if len(row) == int(sheet_options['last_column']):
+            # Ignore vocabularies which are not ready.
+            if row[READY] == 'y':
+                update = SheetUpdate()
 
-        for root, dirs, files in os.walk(sheet_options['temp']):
-            for file in files:
-                os.remove(root + file)
+                # In order to keep namespaces stable this will first try to assign the
+                # defined and then generated namespaces.
+                # Only if both are empty is a new namespace generated (either because it it processed for the first
+                # time or the namespaces have been deleted.
+                namespace = ''
+                if row[DEFINED_NAMESPACE] != '':
+                    namespace = row[DEFINED_NAMESPACE]
+                else:
+                    namespace = row[GENERATED_NAMESPACE]
+
+                fuseki = FusekiUpdate(row[TITLE], row[URL], row[FILE_TYPE], row[SHORT_NAME], namespace,
+                             sheet_options['temp'], update)
+
+                try:
+                    fuseki.process()
+                except (InvalidMIMETypeError, DownloadError, FusekiUploadError, NoNamespaceDetectedError) as error:
+                    logging.exception(str(error))
+                    pass
+                # catch all unhandled exceptions. This should be updated as new exceptions occur.
+                except Exception as error:
+                    update.error_type = 'UNKNOWN ERROR (' + str(type(error)) + ')'
+                    update.error_message = str(error)
+                    logging.exception('Unhandled exception occurred: ')
+                    pass
+
+                # update the sheet with the values gathered. some of these may be empty.
+                row[GENERATED_NAMESPACE] = update.namespace
+                row[TRIPLE_COUNT] = update.triple_count
+                row[ERROR_TYPE] = update.error_type
+                row[ERROR] = update.error_message
+                row[SKOSMOS_ENTRY] = update.skosmos_entry
+
+                try:
+                    sheet.update_row(i, row)
+                except googleapiclient.errors.HttpError:
+                    time.sleep(100)
+                    sheet.update_row(i, row)
+
+                # clean temporary folders to ensure that no corrupted files are left behind if something went wrong.
+                for root, dirs, files in os.walk(sheet_options['temp']):
+                    for file in files:
+                        os.remove(root + file)
+        else:
+            sheet.update_cell('L' + str(i), '#')
 except Exception:
     logging.critical('Something unexpected happened and the application has ended early:', exc_info=True)
+else:
+    logging.info('APPLICATION ENDED SUCCESSFULLY.')
 
