@@ -351,7 +351,7 @@ try:
 
     logging.basicConfig(**log_options)
 
-    c = pygsheets.authorize(outh_nonlocal=True)
+    c = pygsheets.authorize(outh_file=sheet_options['credentials_file'], outh_nonlocal=True)
     sheet = c.open(sheet_options['sheet_name']).sheet1
 
     num_col = len(sheet.get_col(1))
