@@ -391,6 +391,13 @@ try:
                     logging.exception('Unhandled exception occurred: ')
                     pass
 
+                # reload the sheet data to ensure that no data is lost.
+                try:
+                    row = sheet.get_row(i)
+                except googleapiclient.errors.HttpError:
+                    time.sleep(100)
+                    row = sheet.get_row(i)
+
                 # update the sheet with the values gathered. some of these may be empty.
                 row[GENERATED_NAMESPACE] = update.namespace
                 row[TRIPLE_COUNT] = update.triple_count
