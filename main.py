@@ -361,7 +361,7 @@ try:
         except googleapiclient.errors.HttpError:
             time.sleep(100)
             row = sheet.get_row(i)
-        if len(row) == int(sheet_options['last_column']):
+        if len(row) >= int(sheet_options['last_column']):
             # Ignore vocabularies which are not ready.
             if row[READY] == 'y':
                 update = SheetUpdate()
