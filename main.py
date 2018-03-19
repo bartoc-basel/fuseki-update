@@ -30,13 +30,14 @@ TITLE = 0
 URL = 1
 FILE_TYPE = 2
 SHORT_NAME = 3
-DEFINED_NAMESPACE = 4
-READY = 5
-GENERATED_NAMESPACE = 6
-TRIPLE_COUNT = 7
-ERROR_TYPE = 8
-ERROR = 9
-SKOSMOS_ENTRY = 10
+SPARQL_GRAPH_NAME = 4
+DEFAULT_LANGUAGE = 5
+READY = 6
+NAMESPACE = 7
+TRIPLE_COUNT = 8
+ERROR_TYPE = 9
+ERROR = 10
+SKOSMOS_ENTRY = 11
 
 class InvalidMIMETypeError(Exception): pass
 class DownloadError(Exception): pass
@@ -102,7 +103,8 @@ class SkosifiedGraph(object):
             return
             # if parser was not successful there is no point in continuing.
 
-        if self.namespace == '':  # this is empty if no namespace was defined or generated in the sheet.
+        # if no namespace has been defined try to find one.
+        if self.namespace == '':
             self.detect_namespace()
         try:
             # Does some magic to the vocabulary.
@@ -140,7 +142,7 @@ class SkosifiedGraph(object):
                                                ', because there are no SKOS Concepts or SKOS Concept Schemes defined.')
 
         local_name = concept.split('/')[-1].split('#')[-1]
-        namespace = URIRef(concept.replace(local_name, ''))
+        namespace = URIRef(concept.replace(local_name, '').strip('#'))
         if namespace.strip() == '':
             raise NoNamespaceDetectedError('Could not detect a namespace for ' + self.name +
                                            ', because the URI is not valid.')
@@ -152,16 +154,16 @@ class SkosifiedGraph(object):
 class FusekiUpdate(object):
     """This class handles the download and upload of each vocabulary."""
 
-    def __init__(self, title: str, url: str, file_type: str, short_name: str, defined_namespace: str, temp_path: str,
+    def __init__(self, title: str, url: str, file_type: str, short_name: str,
+                 sparql_graph: str, namespace: str, default_language: str, temp_path: str,
                  update: SheetUpdate, logger=logging.getLogger('fuseki-update')):
         """
-
         :param title:               Name/Title of the vocabulary. Input from sheet.
         :param url:                 Url to where the vocabulary can be downloaded. Input from sheet.
         :param file_type:           MIME Type of the downloaded file. Input from sheet.
         :param short_name:          Short name of the vocabulary. Input from sheet.
-        :param defined_namespace:   A defined namespace. Input from sheet
-                                    (Anreas will only input this if automatic detection does not work).
+        :param sparql_graph:        Required to name the sparql graph in fuseki.
+        :param namespace:           Namespace to fill in void:uriSpace in Skosmos entry file.
         :param temp_path:           File path to temporary folders. Input from default.cfg.
         :param update:              The SheetUpdate object for this vocabulary.
         :param logger:              The logger...
@@ -171,9 +173,14 @@ class FusekiUpdate(object):
         self.url = url.strip()
         self.short_name = short_name.strip()
         self.file_end = file_type.strip().lower()
-        self.namespace = defined_namespace.strip()
+        self.sparql_graph = sparql_graph.strip()
+        self.namespace = namespace.strip()
         self.temp_path = temp_path
         self.local_file_name = ''
+        if default_language.strip() != '':
+            self.default_language = default_language.strip()
+        else:
+            self.default_language = None
 
         self.sheet_updates = update
         if self.namespace == '':
@@ -193,9 +200,8 @@ class FusekiUpdate(object):
         """
         self.mime_type = self.check_mime_type(self.file_end)
         self.download_file(self.url)
-        # TODO: Implement language.
-        self.graph = SkosifiedGraph(self.local_file_name, self.file_end, self.title, self.namespace, self.temp_path, None,
-                                    self.sheet_updates)
+        self.graph = SkosifiedGraph(self.local_file_name, self.file_end, self.title, self.namespace, self.temp_path,
+                                    self.default_language, self.sheet_updates)
         try:
             self.graph.process()
         except NoNamespaceDetectedError as error:
@@ -280,22 +286,27 @@ class FusekiUpdate(object):
 
     def upload_file(self):
         """
-        Upload file to the Fuseki Server. Will always first delete the old file. Updates are are not possible with file upload API.
+        Upload the file to the fuseki triple store with PUT. This will overwrite an existing graph with the same name.
 
-        TODO: Change upload to use SPARQL. This would allow for updates instead of DELETE + POST. Could use rdflib to connect to store.
+        TODO: Change upload to use SPARQL -> for incremental updates to avoid having to download all the files.
 
         :raises FusekiUploadError  if response status code is lower than 200 or higher than 300.
         """
         with open(self.temp_path + self.local_file_name, 'r', encoding='utf-8') as file:
             data = {'name': (self.local_file_name, file.read(), self.mime_type)}
-            basic_url = 'http://localhost:3030/skosmos/data?graph=' + self.graph.namespace
+            if self.sparql_graph == '':
+                self.sheet_updates.error_type = 'NO GRAPH NAME'
+                self.sheet_updates.error_message = 'A graph name is required for a upload to take place. Once set' \
+                                                   ' the graph name should not be changed.'
+                raise FusekiUploadError
+            basic_url = 'http://localhost:3030/skosmos/data?graph=' + self.sparql_graph
 
             # delete the graph if it exists. Otherwise updates to values would get added as additional triples.
             # the deletion is silent if some data has duplicate triples then this probably failed.
-            requests.request('DELETE', basic_url)
+            # requests.request('DELETE', basic_url)
 
             # upload graph to server.
-            response = requests.request('POST', basic_url, files=data)
+            response = requests.request('PUT', basic_url, files=data)
 
             if not response.ok:
                 self.sheet_updates.error_type = 'UPLOAD ERROR ' + str(response.status_code)
@@ -305,19 +316,19 @@ class FusekiUpdate(object):
             self.sheet_updates.triple_count = str(json.loads(response.text)['tripleCount'])
 
     def create_skosmos_entry(self):
-        """Create a basic skosmos config entry. Anreas has to adjust this by hand and then copy it into the file."""
+        """Create a basic skosmos config entry. Has to be adjust this by hand and then copy it into the file."""
         short_name = self.short_name.lower().replace(' ', '_')
         result = ':' + short_name + ' a skosmos:Vocabulary, void:Dataset ;\n'
         result += '\tdc:title "' + self.title + '"@en ;\n'
         result += '\tskosmos:shortName "' + self.short_name + '" ;\n'
         result += '\tdc:subject :cat_general ;\n'
-        result += '\tvoid:uriSpace "' + str(self.sheet_updates.namespace) + '" ;\n'
+        result += '\tvoid:uriSpace "' + str(self.namespace) + '" ;\n'
         result += '\tskosmos:language "en" ;\n'
         result += '\tskosmos:defaultLanguage "en" ;\n'
         result += '\tskosmos:showTopConcepts true ;\n'
         result += '\tvoid:sparqlEndpoint <http://localhost:6081/skosmos/sparql> ;\n'
         # LAST LINE NEEDS TO END WITH A DOT IF EXPANDED!!
-        result += '\tskosmos:sparqlGraph <' + str(self.sheet_updates.namespace) + '> .\n'
+        result += '\tskosmos:sparqlGraph <' + str(self.sparql_graph) + '> .\n'
         return result
 
 
@@ -351,7 +362,9 @@ try:
 
     logging.basicConfig(**log_options)
 
-    c = pygsheets.authorize(outh_file=sheet_options['client_secret'], outh_creds_store=sheet_options['cred_store'], outh_nonlocal=True)
+    c = pygsheets.authorize(outh_file=sheet_options['client_secret'],
+                            outh_creds_store=sheet_options['cred_store'],
+                            outh_nonlocal=True)
     sheet = c.open(sheet_options['sheet_name']).sheet1
 
     num_col = len(sheet.get_col(1))
@@ -366,18 +379,9 @@ try:
             if row[READY] == 'y':
                 update = SheetUpdate()
 
-                # In order to keep namespaces stable this will first try to assign the
-                # defined and then generated namespaces.
-                # Only if both are empty is a new namespace generated (either because it it processed for the first
-                # time or the namespaces have been deleted.
-                namespace = ''
-                if row[DEFINED_NAMESPACE] != '':
-                    namespace = row[DEFINED_NAMESPACE]
-                else:
-                    namespace = row[GENERATED_NAMESPACE]
-
-                fuseki = FusekiUpdate(row[TITLE], row[URL], row[FILE_TYPE], row[SHORT_NAME], namespace,
-                             sheet_options['temp'], update)
+                fuseki = FusekiUpdate(row[TITLE], row[URL], row[FILE_TYPE], row[SHORT_NAME],
+                                      row[SPARQL_GRAPH_NAME], row[NAMESPACE], row[DEFAULT_LANGUAGE],
+                                      sheet_options['temp'], update)
 
                 try:
                     fuseki.process()
@@ -399,7 +403,7 @@ try:
                     row = sheet.get_row(i)
 
                 # update the sheet with the values gathered. some of these may be empty.
-                row[GENERATED_NAMESPACE] = update.namespace
+                row[NAMESPACE] = update.namespace
                 row[TRIPLE_COUNT] = update.triple_count
                 row[ERROR_TYPE] = update.error_type
                 row[ERROR] = update.error_message
