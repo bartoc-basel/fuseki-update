@@ -6,7 +6,7 @@ import logging
 import json
 import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.WARNING)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 def delete_graph(uri):
@@ -39,22 +39,19 @@ def get_graph(uri):
 
 def create_graph_list():
     sparql = SPARQLWrapper('http://localhost:3030/skosmos/query')
-    sparql.setQuery("""
-                        SELECT ?g
+    sparql.setQuery("""SELECT ?g
                         WHERE {
                             GRAPH ?g { }
-                        }
-                        """
-                    )
+                        }""")
 
     sparql.setReturnFormat(JSON)
-
+    logging.info('Send query.')
     response = sparql.query().convert()
 
     all_graph_uris = list()
     for graph in response['results']['bindings']:
         all_graph_uris.append(graph['g']['value'])
-
+    logging.info('processed query.')
     with open('all_graphs.json', 'w') as file:
         file.write(json.dumps(all_graph_uris, ensure_ascii=False, indent='    '))
     return all_graph_uris
@@ -65,6 +62,7 @@ def create_graph_names_list_from_sheet():
     ss = c.open('update_fuseki')
     wks = ss.sheet1
     graph_names = list(filter(lambda x: x != '', wks.get_col(5)[1:]))
+    logging.info('Read sheet.')
     with open('sheet_graphs.json', 'w') as file:
         file.write(json.dumps(list(graph_names), ensure_ascii=False, indent='    '))
     return graph_names
@@ -82,7 +80,7 @@ def create_diff():
     fuseki_set = set(fuseki)
 
     if len(fuseki) != len(sheet_set):
-        logging.warning('The sheet and fuseki do not defined the same amount of graphs!')
+        logging.warning('Fuseki does not have the same amount of graphs stored as are defined in the sheet.!')
 
         not_in_sheet = fuseki_set - sheet_set
         not_in_store = sheet_set - fuseki_set
@@ -95,12 +93,7 @@ def create_diff():
         logging.info('There is no difference between the sheet graphs and the graphs in fuseki.')
 
 
-
-
-
-
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(description='Various utility functions to interact with the fuseki triple store.')
     parser.add_argument('-d', dest='delete_request', action='store_true')
     parser.add_argument('-p', dest='put_request', action='store_true')
