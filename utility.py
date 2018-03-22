@@ -18,9 +18,10 @@ def delete_graph(uri):
         logging.error(response.text)
 
 
-def put_graph(uri):
+def put_graph(uri, data):
     url = 'http://localhost:3030/skosmos/data?graph=' + uri
-    response = requests.request('PUT', url)
+    data = {'name': ('upload.ttl', open('empty.ttl').read(), 'application/x-turtle')}
+    response = requests.request('PUT', url, files=data)
     if response.ok:
         logging.info(response.text)
     else:
@@ -113,6 +114,11 @@ if __name__ == '__main__':
 
     if args.get_request:
         get_graph(args.uri, args.file)
+
+    if args.delete_request:
+        delete_graph(args.uri)
+    if args.put_request:
+        put_graph(args.uri, None)
 
 
 

@@ -1,7 +1,5 @@
 [
-    "http://www.yso.fi/onto/tsr/aggregateconceptscheme",
-    "http://vocabulary.worldbank.org/thesaurus/1490833",
-    "http://aims.fao.org/aos/agrovoc/void.ttl",
     "http://www.yso.fi/onto/yso/aggregateconceptscheme",
-    "https://vocabs.acdh.oeaw.ac.at/defcthesaurus/scraped_a3ε/"
+    "http://aims.fao.org/aos/agrovoc/void.ttl",
+    "http://www.yso.fi/onto/tsr/aggregateconceptscheme"
 ]
