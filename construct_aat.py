@@ -21,7 +21,7 @@ aat_full = 'http://vocab.getty.edu/dataset/aat/full.zip'
 g = Graph()
 g.parse(ontology, format='xml')
 
-g.serialize('getty/base_ontology.ttl', format='ttl')
+g.serialize('vocabularies/getty/base_ontology.ttl', format='ttl')
 
 
 response = requests.get(aat_full)
@@ -32,7 +32,7 @@ if response.ok:
     z = zipfile.ZipFile(buffer)
     for n, i in zip(z.namelist(), z.infolist()):
         tmp = z.read(i).decode('utf-8')
-        with open('getty/' + str(n), 'w') as file:
+        with open('vocabularies/getty/' + str(n), 'w') as file:
             file.write(tmp)
 
 
