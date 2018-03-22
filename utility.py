@@ -27,14 +27,14 @@ def put_graph(uri):
         logging.error(response.text)
 
 
-def get_graph(uri):
+def get_graph(uri, path):
     url = 'http://localhost:3030/skosmos/data?graph=' + uri
     response = requests.request('GET', url)
     if response.ok:
-        logging.info(response.text)
+        with open(path, 'w') as file:
+            file.write(response.text)
     else:
         logging.error(response.text)
-
 
 
 def create_graph_list():
@@ -100,6 +100,7 @@ if __name__ == '__main__':
     parser.add_argument('-g', dest='get_request', action='store_true')
     parser.add_argument('-all', dest='graphs', action='store_true')
     parser.add_argument('-diff', dest='diff', action='store_true')
+    parser.add_argument('-f', dest='file', action='store', default='output.ttl')
     parser.add_argument('uri', nargs='?', default='')
 
     args = parser.parse_args()
@@ -109,5 +110,9 @@ if __name__ == '__main__':
 
     if args.diff:
         create_diff()
+
+    if args.get_request:
+        get_graph(args.uri, args.file)
+
 
 
