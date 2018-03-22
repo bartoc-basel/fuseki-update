@@ -52,7 +52,7 @@ def create_graph_list():
     for graph in response['results']['bindings']:
         all_graph_uris.append(graph['g']['value'])
     logging.info('processed query.')
-    with open('all_graphs.json', 'w') as file:
+    with open('graph_entries/all_graphs.json', 'w') as file:
         file.write(json.dumps(all_graph_uris, ensure_ascii=False, indent='    '))
     return all_graph_uris
 
@@ -63,7 +63,7 @@ def create_graph_names_list_from_sheet():
     wks = ss.sheet1
     graph_names = list(filter(lambda x: x != '', wks.get_col(5)[1:]))
     logging.info('Read sheet.')
-    with open('sheet_graphs.json', 'w') as file:
+    with open('graph_entries/sheet_graphs.json', 'w') as file:
         file.write(json.dumps(list(graph_names), ensure_ascii=False, indent='    '))
     return graph_names
 
@@ -85,9 +85,9 @@ def create_diff():
         not_in_sheet = fuseki_set - sheet_set
         not_in_store = sheet_set - fuseki_set
 
-        with open('not_in_store.json', 'w') as file:
+        with open('graph_entries/not_in_store.json', 'w') as file:
             file.write(json.dumps(list(not_in_store), ensure_ascii=False, indent='    '))
-        with open('not_in_sheet.json', 'w') as file:
+        with open('graph_entries/not_in_sheet.json', 'w') as file:
             file.write(json.dumps(list(not_in_sheet), ensure_ascii=False, indent='    '))
     else:
         logging.info('There is no difference between the sheet graphs and the graphs in fuseki.')
