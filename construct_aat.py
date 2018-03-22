@@ -38,5 +38,16 @@ if response.ok:
 
 
 
+aat = Graph()
+aat.parse('vocabularies/getty/base_ontology.ttl')
+aat.parse('vocabularies/getty/AATOut_Full.nt')
+aat.parse('vocabularies/getty/AATOut_Sources.nt')
+aat.parse('vocabularies/getty/AATOut_Contribs.nt')
+
+aat.serialize('vocabularies/getty/aat_full.ttl', format='ttl')
+
+
+
+
 
 
