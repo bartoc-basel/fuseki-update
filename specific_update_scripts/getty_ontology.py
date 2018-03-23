@@ -18,11 +18,13 @@ def update_ontology(config):
 
     gvp = Namespace('http://vocab.getty.edu/ontology#')
     schema = Namespace('http://schema.org/')
+    aat = Namespace('http://vocab.getty.edu/aat/')
 
     g = Graph()
 
     g.bind('gvp', gvp)
     g.bind('schema', schema)
+    g.bind('aat', aat)
 
     logger.info('Load base ontology for getty!')
     g.parse(ontology, format='xml')
@@ -36,8 +38,9 @@ def update_ontology(config):
     add_skos_predicate_variant(g, DC.title, SKOS.prefLabel)
     add_skos_predicate_variant(g, DC.identifier, SKOS.notation)
     add_skos_predicate_variant(g, RDFS.subPropertyOf, SKOS.broader)
+    add_skos_predicate_variant(g, RDFS.isDefinedBy, SKOS.topConceptOf)
 
-    replace_triple_object(g, SKOS.ConceptScheme, SKOS.Concept)
+    # replace_triple_object(g, SKOS.ConceptScheme, SKOS.Concept)
 
     add_type(g, OWL.Ontology, SKOS.ConceptScheme)
     add_type(g, OWL.Class, SKOS.Concept)
@@ -54,4 +57,4 @@ def update_ontology(config):
     voc = skosify.skosify(path + file_name + '.ttl')
     voc.serialize(path + file_name_skosified + '.ttl', format='ttl')
 
-    put_graph('http://vocab.getty.edu/ontology', open(path + file_name + '.ttl'))
+    put_graph('http://vocab.getty.edu/ontology', open(path + file_name_skosified + '.ttl'))

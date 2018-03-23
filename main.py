@@ -1,14 +1,24 @@
 from configparser import ConfigParser, ExtendedInterpolation
+from utility.fuseki import *
 import specific_update_scripts
 import update
 import argparse
 import logging
 
 parser = argparse.ArgumentParser(description='A command line tool to update & manage the fuseki triple store.')
-parser.add_argument('config', action='store', type=str, default='default.cfg', help='Necessary configuration values for this module to run.')
-parser.add_argument('--config', action='store', type=str, dest='voc_config', default=None, help='The config file used for this vocabulary..')
+parser.add_argument('config', action='store', type=str, default='default.cfg',
+                    help='Necessary configuration values for this module to run.')
+parser.add_argument('--config', action='store', type=str, dest='voc_config', default=None,
+                    help='The config file used for this vocabulary..')
 parser.add_argument('-all', action='store_true', dest='run_update')
 parser.add_argument('-u', action='store', dest='name', default=None)
+
+parser.add_argument('-d', dest='delete_request', action='store_true')
+parser.add_argument('-p', dest='put_request', action='store_true')
+parser.add_argument('-g', dest='get_request', action='store_true')
+parser.add_argument('-diff', dest='diff', action='store_true')
+parser.add_argument('-f', dest='file', action='store', default='output.ttl')
+parser.add_argument('--uri', nargs='?', default='')
 
 args = parser.parse_args()
 
@@ -45,11 +55,19 @@ logging.debug('Base path: ' + data_path)
 if args.run_update:
     update.run(config)
 
+
+if args.diff:
+    credentials = config['data']['credentials']
+    c = pygsheets.authorize(outh_file=credentials + 'client_secrets.json',
+                            outh_creds_store=credentials,
+                            outh_nonlocal=True)
+    ss = c.open('update_fuseki')
+    wks = ss.sheet1
+    create_diff(config['data']['base'], wks)
+
 if args.name is not None:
     if args.name == 'getty-ontology':
         specific_update_scripts.update_ontology(config)
-else:
-    raise Exception('Need a name to update!')
 
 
 

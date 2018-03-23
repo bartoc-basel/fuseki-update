@@ -1,6 +1,8 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 import requests
 import logging
+import pygsheets
+import json
 
 
 def delete_graph(uri):
@@ -32,7 +34,7 @@ def get_graph(uri, path):
         logging.error(response.text)
 
 
-def create_graph_list():
+def create_graph_list(path):
     sparql = SPARQLWrapper('http://localhost:3030/skosmos/query')
     sparql.setQuery("""SELECT ?g
                         WHERE {
@@ -47,25 +49,22 @@ def create_graph_list():
     for graph in response['results']['bindings']:
         all_graph_uris.append(graph['g']['value'])
     logging.info('processed query.')
-    with open('graph_entries/all_graphs.json', 'w') as file:
+    with open(path + 'graph_entries/all_graphs.json', 'w') as file:
         file.write(json.dumps(all_graph_uris, ensure_ascii=False, indent='    '))
     return all_graph_uris
 
 
-def create_graph_names_list_from_sheet():
-    c = pygsheets.authorize()
-    ss = c.open('update_fuseki')
-    wks = ss.sheet1
+def create_graph_names_list_from_sheet(path, wks):
     graph_names = list(filter(lambda x: x != '', wks.get_col(5)[1:]))
     logging.info('Read sheet.')
-    with open('graph_entries/sheet_graphs.json', 'w') as file:
+    with open(path + 'graph_entries/sheet_graphs.json', 'w') as file:
         file.write(json.dumps(list(graph_names), ensure_ascii=False, indent='    '))
     return graph_names
 
 
-def create_diff():
-    fuseki = create_graph_list()
-    sheet = create_graph_names_list_from_sheet()
+def create_diff(path, wks):
+    fuseki = create_graph_list(path)
+    sheet = create_graph_names_list_from_sheet(path, wks)
 
     sheet_set = set(sheet)
     if len(sheet_set) < len(sheet):
@@ -80,9 +79,9 @@ def create_diff():
         not_in_sheet = fuseki_set - sheet_set
         not_in_store = sheet_set - fuseki_set
 
-        with open('graph_entries/not_in_store.json', 'w') as file:
+        with open(path + 'graph_entries/not_in_store.json', 'w') as file:
             file.write(json.dumps(list(not_in_store), ensure_ascii=False, indent='    '))
-        with open('graph_entries/not_in_sheet.json', 'w') as file:
+        with open(path + 'graph_entries/not_in_sheet.json', 'w') as file:
             file.write(json.dumps(list(not_in_sheet), ensure_ascii=False, indent='    '))
     else:
         logging.info('There is no difference between the sheet graphs and the graphs in fuseki.')
