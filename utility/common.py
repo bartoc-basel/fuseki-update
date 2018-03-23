@@ -2,9 +2,14 @@ from rdflib import Literal
 from rdflib.namespace import SKOS, RDF, RDFS, OWL, DCTERMS, DC, VOID, FOAF, XSD, XMLNS, DOAP
 
 
+def remove_subject(graph, uri):
+    for (s, p, o) in graph.triples((uri, None, None)):
+        graph.remove((s, p, o))
+
+
 def add_skos_predicate_variant(graph, old, new):
     for s, p, o in graph.triples((None, old, None)):
-        if (s, new, None) not in graph:
+        if (s, new, o) not in graph:
             graph.add((s, new, o))
 
 
@@ -24,12 +29,26 @@ def replace_triple_object(graph, old, new):
 def make_top_concept(graph, type, scheme):
     for s, p, o in graph.triples((None, RDF.type, type)):
         if (s, SKOS.topConceptOf, scheme) not in graph:
-            graph.add((s, SKOS.topConceptOf, scheme))
+            if (s, SKOS.broader, None) not in graph:
+                graph.add((s, SKOS.topConceptOf, scheme))
 
 
 def explicit_import(graph):
     for (_, _, o) in graph.triples((None, OWL.imports, None)):
         graph.parse(o.n3().strip('<>'))
+
+
+def expand_inverse_of_relations(graph, first, second):
+    for (s, p, o) in graph.triples((None, first, None)):
+        if (o, second, s) not in graph:
+            graph.add((o, second, s))
+
+
+def set_in_scheme(graph, scheme):
+    for (s, _, _) in graph.triples((None, RDF.type, SKOS.Concept)):
+        if (s, SKOS.inScheme, None) not in graph:
+            graph.add((s, SKOS.inScheme, scheme))
+
 
 def add_language_tags(graph, tag):
     for (subject, predicate, obj) in graph.triples((None, SKOS.prefLabel, None)):

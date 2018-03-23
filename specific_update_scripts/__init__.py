@@ -1,1 +1,0 @@
-from specific_update_scripts.getty_ontology import update_ontology

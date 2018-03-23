@@ -1,6 +1,7 @@
 from configparser import ConfigParser, ExtendedInterpolation
 from utility.fuseki import *
-import specific_update_scripts
+import specific_update_scripts.getty_ontology
+import specific_update_scripts.skos
 import update
 import argparse
 import logging
@@ -67,7 +68,9 @@ if args.diff:
 
 if args.name is not None:
     if args.name == 'getty-ontology':
-        specific_update_scripts.update_ontology(config)
+        specific_update_scripts.getty_ontology.update(config)
+    if args.name == 'skos':
+        specific_update_scripts.skos.update(config)
 
 
 
