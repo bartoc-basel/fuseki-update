@@ -1,4 +1,4 @@
-from rdflib import Graph, Namespace
+from rdflib import Graph, Namespace, URIRef
 import skosify
 import logging
 from utility.common import *
@@ -14,7 +14,7 @@ def update_ontology(config):
 
     ontology = 'http://vocab.getty.edu/ontology.rdf'
     path = config['data']['base'] + config['data']['vocabulary'] + 'getty/base_ontology/'
-    file_name = 'getty_vocabulary_program_ontology'
+    file_name = 'getty-vocabulary-program-ontology'
 
     gvp = Namespace('http://vocab.getty.edu/ontology#')
     schema = Namespace('http://schema.org/')
@@ -29,26 +29,29 @@ def update_ontology(config):
     logger.info('Finished download and parsing of %s. Begin processing.', ontology)
 
     logger.info('Add skos:prefLabel for rdfs:label.')
-    add_skos_predicate_variant(g, SKOS.prefLabel, RDFS.label)
-    add_skos_predicate_variant(g, SKOS.definition, RDFS.comment)
-    add_skos_predicate_variant(g, SKOS.scopeNote, DCTERMS.description)
-    add_skos_predicate_variant(g, SKOS.broader, RDFS.subClassOf)
-    add_skos_predicate_variant(g, SKOS.ConceptScheme, OWL.Ontology)
-    add_skos_predicate_variant(g, SKOS.Concept, OWL.Class)
+    add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
+    # add_skos_predicate_variant(g, RDFS.comment, SKOS.definition)
+    # add_skos_predicate_variant(g, DCTERMS.description, SKOS.scopeNote)
+    add_skos_predicate_variant(g, RDFS.subClassOf, SKOS.broader)
+    add_skos_predicate_variant(g, DC.title, SKOS.prefLabel)
+    add_skos_predicate_variant(g, DC.identifier, SKOS.notation)
+    add_skos_predicate_variant(g, RDFS.subPropertyOf, SKOS.broader)
+
+    replace_triple_object(g, SKOS.ConceptScheme, SKOS.Concept)
 
     add_type(g, OWL.Ontology, SKOS.ConceptScheme)
     add_type(g, OWL.Class, SKOS.Concept)
     add_type(g, OWL.ObjectProperty, SKOS.Concept)
+    make_top_concept(g, OWL.ObjectProperty, URIRef('http://vocab.getty.edu/ontology'))
 
-    replace_triple_object(g, SKOS.ConceptScheme, SKOS.Concept)
-
-
+    add_language_tags(g, 'en')
 
     logger.info('Begin serialization.')
-    g.serialize(path + file_name + '.rdf', format='xml')
-    logger.info('Serialized base ontology and saved in %s.', path + file_name + '.rdf')
+    g.serialize(path + file_name + '.ttl', format='ttl')
+    logger.info('Serialized base ontology and saved in %s.', path + file_name + '.ttl')
 
-    voc = skosify.skosify(path + file_name + '.rdf')
-    voc.serialize(path + file_name + '.ttl', format='ttl')
+    file_name_skosified = file_name + '-skosified'
+    voc = skosify.skosify(path + file_name + '.ttl')
+    voc.serialize(path + file_name_skosified + '.ttl', format='ttl')
 
     put_graph('http://vocab.getty.edu/ontology', open(path + file_name + '.ttl'))
