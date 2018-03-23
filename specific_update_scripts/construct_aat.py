@@ -1,5 +1,4 @@
 from rdflib import Graph
-import argparse
 import requests
 import logging
 import sys
@@ -12,17 +11,7 @@ import zipfile
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-ontology = 'http://vocab.getty.edu/ontology.rdf'
-ontology_path = 'vocabularies/getty/base_ontology.ttl'
 aat_full = 'http://vocab.getty.edu/dataset/aat/full.zip'
-
-g = Graph()
-
-logging.info('Load base ontology for getty!')
-g.parse(ontology, format='xml')
-logging.info('Finished download and parsing of %s. Begin serialization.', ontology)
-g.serialize(ontology_path, format='ttl')
-logging.info('Serialized base ontology and saved in %s.', ontology_path)
 
 logging.info('Download full aat zip!')
 response = requests.get(aat_full)
