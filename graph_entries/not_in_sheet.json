@@ -1,5 +1,25 @@
 [
+    "http://data.culture.fr/thesaurus/resource/ark/thesoeuvarch",
+    "http://data.culture.fr/thesaurus/resource/ark/typdocarchloc",
+    "http://vocab.getty.edu/ontology",
+    "http://www.yso.fi/onto/yso/muso",
+    "http://data.culture.fr/thesaurus/resource/ark/contarchloc",
+    "http://data.culture.fr/thesaurus/resource/ark/thesarchires",
+    "http://vocabulary.semantic-web.at/semweb/export/semweb",
+    "https://bartoc.poolparty.biz/ThesaurusBaslerAfrikaBibliographien/",
+    "http://www.yso.fi/onto/yso/kto",
+    "http://data.culture.fr/thesaurus/resource/ark/hadoc",
+    "http://data.culture.fr/thesaurus/resource/ark/actarchloc",
+    "http://data.bnf.fr/ark:/12148/",
     "http://aims.fao.org/aos/agrovoc/void.ttl",
-    "http://id.loc.gov/authorities/subjects/",
-    "http://d-nb.info/gnd/"
+    "http://data.culture.fr/thesaurus/resource/ark/techphot",
+    "http://www.yso.fi/onto/yso/maotao",
+    "http://www.yso.fi/onto/yso/liito",
+    "http://www.yso.fi/onto/yso/tero",
+    "http://data.culture.fr/thesaurus/resource/ark/voctechphot",
+    "http://data.culture.fr/thesaurus/resource/ark/actentarch",
+    "http://data.culture.fr/thesaurus/resource/ark/desigobjmob",
+    "http://www.yso.fi/onto/yso/puho",
+    "http://www.yso.fi/onto/yso/jupo",
+    "http://www.yso.fi/onto/yso/juho"
 ]
