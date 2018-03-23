@@ -3,3 +3,4 @@ client_secret.json
 sheets.googleapis.com-python.json
 vocabularies/
 output.log
+default.cfg
