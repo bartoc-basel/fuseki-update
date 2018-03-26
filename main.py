@@ -1,5 +1,6 @@
 from configparser import ConfigParser, ExtendedInterpolation
 from utility.fuseki import *
+import utility.skosify_file
 import specific_update_scripts.getty_ontology
 import specific_update_scripts.skos
 import update
@@ -10,7 +11,7 @@ parser = argparse.ArgumentParser(description='A command line tool to update & ma
 parser.add_argument('config', action='store', type=str, default='default.cfg',
                     help='Necessary configuration values for this module to run.')
 parser.add_argument('--config', action='store', type=str, dest='voc_config', default=None,
-                    help='The config file used for this vocabulary..')
+                    help='The config file used for this vocabulary in skosify. NYI')
 parser.add_argument('-all', action='store_true', dest='run_update')
 parser.add_argument('-u', action='store', dest='name', default=None)
 
@@ -20,6 +21,10 @@ parser.add_argument('-g', dest='get_request', action='store_true')
 parser.add_argument('-diff', dest='diff', action='store_true')
 parser.add_argument('-f', dest='file', action='store', default='output.ttl')
 parser.add_argument('--uri', nargs='?', default='')
+parser.add_argument('--url', nargs='?', default='')
+parser.add_argument('-t', dest='test_skosify', action='store_true')
+parser.add_argument('-l', dest='label', action='store')
+parser.add_argument('--namespace', action='store', default=None)
 
 args = parser.parse_args()
 
@@ -71,6 +76,10 @@ if args.name is not None:
         specific_update_scripts.getty_ontology.update(config)
     if args.name == 'skos':
         specific_update_scripts.skos.update(config)
+
+if args.test_skosify:
+    utility.skosify_file.run(args.url, config, args.label, args.file, namespace=args.namespace)
+
 
 
 

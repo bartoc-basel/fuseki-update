@@ -332,7 +332,7 @@ class FusekiUpdate(object):
 def run(config):
     try:
         credentials = config['data']['base'] + config['data']['credentials']
-        temp_path = config['data']['base'] + config['data']['tmp']
+        temp_path = config['data']['base'] + config['data']['temporary']
 
         c = pygsheets.authorize(outh_file=credentials + 'client_secrets.json',
                                 outh_creds_store=credentials,
