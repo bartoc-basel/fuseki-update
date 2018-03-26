@@ -1,12 +1,14 @@
 [
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre",
-    "http://vocab.getty.edu/tgn/",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal",
+    "http://id.loc.gov/static/data/authoritiessubjects",
     "http://anonftp.oclc.org/pub/researchdata/fast/FASTChronological",
-    "http://ns.nature.com/relations/",
+    "http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical",
     "http://anonftp.oclc.org/pub/researchdata/fast/FASTEvent",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTTitle"
+    "http://ns.nature.com/relations/",
+    "http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic",
+    "http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate",
+    "http://vocab.getty.edu/ulan/",
+    "http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal",
+    "http://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre",
+    "http://anonftp.oclc.org/pub/researchdata/fast/FASTTitle",
+    "http://vocab.getty.edu/tgn/"
 ]
