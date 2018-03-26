@@ -1,4 +1,5 @@
 [
+    "http://www.ivoa.net/rdf/Vocabularies/IVOAT",
     "http://www.yso.fi/onto/yso/mero",
     "http://data.culture.fr/thesaurus/resource/ark/hadoc",
     "http://data.culture.fr/thesaurus/resource/ark/vocdomact",
@@ -245,5 +246,7 @@
     "http://eurovoc.europa.eu/",
     "http://id.agrisemantics.org/gacs/",
     "http://iconclass.org/",
-    "http://aims.fao.org/aos/agrovoc/"
+    "http://aims.fao.org/aos/agrovoc/",
+    "http://www.w3.org/2004/02/skos/core",
+    "http://vocab.getty.edu/ontology"
 ]

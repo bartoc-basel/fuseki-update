@@ -1,12 +1,1 @@
-[
-    "http://www.w3.org/2004/02/skos/core",
-    "http://data.culture.fr/thesaurus/resource/ark/thesarchires",
-    "http://aims.fao.org/aos/agrovoc/void.ttl",
-    "http://data.culture.fr/thesaurus/resource/ark:/67717/T96",
-    "http://data.bnf.fr/ark:/12148/",
-    "http://vocab.getty.edu/ontology",
-    "http://www.yso.fi/onto/yso/jupo",
-    "http://www.yso.fi/onto/yso/juho",
-    "https://bartoc.poolparty.biz/ThesaurusBaslerAfrikaBibliographien/",
-    "http://vocabulary.semantic-web.at/semweb/export/semweb"
-]
+[]
