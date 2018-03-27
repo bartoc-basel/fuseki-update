@@ -67,10 +67,11 @@ def update(config):
 
         g = Graph()
 
+        g.parse(path + file_name)
         add_type(g, SCHEMA.Event, SKOS.Concept)
         add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
 
-        g.parse(path)
-        g.serialize(destination=path + '.ttl', format='ttl')
+        file_name = file_name.replace('.n3', '.ttl')
+        g.serialize(destination=path + file_name, format='ttl')
 
-        put_graph(graph, open(path + '.ttl'))
+        put_graph(graph, open(path + file_name))
