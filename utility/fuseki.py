@@ -1,7 +1,6 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 import requests
 import logging
-import pygsheets
 import json
 
 

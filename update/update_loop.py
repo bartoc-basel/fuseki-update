@@ -15,6 +15,7 @@ import zipfile
 import time
 import pygsheets
 import googleapiclient.errors
+import ftplib
 
 # The MIME Types for the possible rdf file formats. Needed to upload a file on apache jena.
 TURTLE_MIME_TYPE = 'application/x-turtle'
@@ -251,30 +252,52 @@ class FusekiUpdate(object):
 
         :raises DownloadError   If the download could not be completed.
         """
-        try:
-            download_file_response = requests.get(url)
-        except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as error:
-            self.sheet_updates.error_type = 'CONNECTION ERROR'
-            self.sheet_updates.error_message = 'Could not connect to ' + url
-            self.logger.exception(error)
-            raise DownloadError('Could not download from ' + url + ' because of a connection error.')
+        if url.startswith('http'):
+            try:
+                download_file_response = requests.get(url)
+            except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as error:
+                self.sheet_updates.error_type = 'CONNECTION ERROR'
+                self.sheet_updates.error_message = 'Could not connect to ' + url
+                self.logger.exception(error)
+                raise DownloadError('Could not download from ' + url + ' because of a connection error.')
 
-        if not download_file_response.ok:
-            self.sheet_updates.error_type = 'DOWNLOAD ERROR (' + str(download_file_response.status_code) + ')'
-            self.sheet_updates.error_message = download_file_response.text
-            raise DownloadError('Was unable to download the file from ' + url)
+            if not download_file_response.ok:
+                self.sheet_updates.error_type = 'DOWNLOAD ERROR (' + str(download_file_response.status_code) + ')'
+                self.sheet_updates.error_message = download_file_response.text
+                raise DownloadError('Was unable to download the file from ' + url)
+            content = download_file_response.content
+            buffer = BytesIO(download_file_response.content)
+
+        elif url.startswith('ftp'):
+            import urllib.parse
+            import ftplib
+            parts = urllib.parse.urlparse('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre.nt.zip')
+            file_name = parts.path.split('/')[-1]
+            path = parts.path.replace(file_name, '')
+            ftp = ftplib.FTP(parts.netloc)
+            ftp.login()
+            ftp.cwd(path)
+            ftp.retrbinary('RETR ' + file_name, open(self.temp_path + file_name, 'wb').write)
+            ftp.quit()
+            with open(self.temp_path + file_name, 'rb') as file:
+                content = file.read()
+                buffer = BytesIO(content)
+        else:
+            self.sheet_updates.error_type = 'DOWNLOAD ERROR'
+            self.sheet_updates.error_message = 'Invalid protocol: only HTTP[S] & FTP are supported!'
+            raise DownloadError('Invalid protocol: only HTTP[S] & FTP are supported!')
+
 
         # save downloaded file locally to ensure that it is unzipped
         #  and does not need to be downloaded again for getting an URI
         file_name = self.temp_path + 'temporary.' + self.file_end.lower()
-        buffer = BytesIO(download_file_response.content)
         if url.endswith('.zip'):
             z = zipfile.ZipFile(buffer)
             text = z.read(z.infolist()[0]).decode('utf-8')
         elif url.endswith('.gz'):
-            text = gzip.decompress(download_file_response.content).decode('utf-8')
+            text = gzip.decompress(content).decode('utf-8')
         else:
-            text = download_file_response.content.decode('utf-8')
+            text = content.decode('utf-8')
 
         with open(file_name, 'w', encoding='utf-8') as file:
             file.write(text)
