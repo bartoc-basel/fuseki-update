@@ -1,5 +1,6 @@
 from rdflib import Graph, Namespace, URIRef
 import skosify
+import os
 import zipfile
 import logging
 from io import BytesIO
@@ -55,8 +56,11 @@ def update(config):
         z = zipfile.ZipFile(buffer)
         text = z.read(z.infolist()[0]).decode('utf-8')
 
-        path = config['data']['base'] + config['data']['vocabulary'] + 'fast/' + file_name.replace('.zip', '')
-        with open(path, 'w', encoding='utf-8') as file:
+        path = config['data']['base'] + config['data']['vocabulary'] + 'fast/'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        file_name = file_name.replace('.zip', '')
+        with open(path + file_name, 'w', encoding='utf-8') as file:
             file.write(text)
 
         SCHEMA = Namespace('http://schema.org/')
