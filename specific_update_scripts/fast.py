@@ -66,6 +66,35 @@ def update(config):
         logger.info('Parsing graph from %s.', path + file_name)
         g.parse(path + file_name, format='nt')
 
+        fast = URIRef('http://id.worldcat.org/fast/ontology/1.0/#fast')
+        fast_event = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Event')
+        fast_chronological = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Chronological')
+        fast_form_genre = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-FormGenre')
+        fast_geographic = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Geographic')
+        fast_title = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Title')
+        fast_topical = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Topical')
+        fast_corporate = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Corporate')
+        fast_personal = URIRef('http://id.worldcat.org/fast/ontology/1.0/#facet-Personal')
+
+        if (fast, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast, SKOS.prefLabel, Literal('Fast Concept Scheme (overall)')))
+        if (fast_event, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_event, SKOS.prefLabel, Literal('Fast Concept Scheme (event term)')))
+        if (fast_chronological, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_chronological, SKOS.prefLabel, Literal('Fast Concept Scheme (chronological term)')))
+        if (fast_form_genre, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_form_genre, SKOS.prefLabel, Literal('Fast Concept Scheme (form or genre term)')))
+        if (fast_geographic, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_geographic, SKOS.prefLabel, Literal('Fast Concept Scheme (greographic term)')))
+        if (fast_title, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_title, SKOS.prefLabel, Literal('Fast Concept Scheme (title term)')))
+        if (fast_topical, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_topical, SKOS.prefLabel, Literal('Fast Concept Scheme (topical term)')))
+        if (fast_corporate, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_corporate, SKOS.prefLabel, Literal('Fast Concept Scheme (corporate term)')))
+        if (fast_personal, RDF.type, SKOS.ConceptScheme) in g:
+            g.add((fast_personal, SKOS.prefLabel, Literal('Fast Concept Scheme (personal term)')))
+
         add_type(g, SCHEMA.Event, SKOS.Concept)
         add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
 
