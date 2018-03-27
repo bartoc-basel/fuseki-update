@@ -96,7 +96,12 @@ def update(config):
             g.add((fast_personal, SKOS.prefLabel, Literal('Fast Concept Scheme (personal term)')))
 
         add_type(g, SCHEMA.Event, SKOS.Concept)
+        add_type(g, SCHEMA.CreativeWork, SKOS.Concept)
+        add_type(g, SCHEMA.Intangible, SKOS.Concept)
+        add_type(g, SCHEMA.Person, SKOS.Concept)
         add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
+
+        add_language_tags(g, 'en')
 
         file_name = file_name.replace('.nt', '.ttl')
         logger.info('Saving changed graph to %s.', path + file_name)
