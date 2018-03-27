@@ -1,4 +1,4 @@
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser
 from utility.fuseki import *
 import utility.skosify_file
 import specific_update_scripts.getty_ontology
@@ -6,6 +6,7 @@ import specific_update_scripts.skos
 import update
 import argparse
 import logging
+import pygsheets
 
 parser = argparse.ArgumentParser(description='A command line tool to update & manage the fuseki triple store.')
 parser.add_argument('config', action='store', type=str, default='default.cfg',
@@ -15,9 +16,9 @@ parser.add_argument('--config', action='store', type=str, dest='voc_config', def
 parser.add_argument('-all', action='store_true', dest='run_update')
 parser.add_argument('-u', action='store', dest='name', default=None)
 
-parser.add_argument('-d', dest='delete_request', action='store_true')
-parser.add_argument('-p', dest='put_request', action='store_true')
-parser.add_argument('-g', dest='get_request', action='store_true')
+parser.add_argument('-delete', dest='delete_request', action='store_true')
+parser.add_argument('-put', dest='put_request', action='store_true')
+parser.add_argument('-get', dest='get_request', action='store_true')
 parser.add_argument('-diff', dest='diff', action='store_true')
 parser.add_argument('-f', dest='file', action='store', default='output.ttl')
 parser.add_argument('--uri', nargs='?', default='')
@@ -25,6 +26,7 @@ parser.add_argument('--url', nargs='?', default='')
 parser.add_argument('-t', dest='test_skosify', action='store_true')
 parser.add_argument('-l', dest='label', action='store')
 parser.add_argument('--namespace', action='store', default=None)
+parser.add_argument('--default-language', action='store', default=None)
 
 args = parser.parse_args()
 
@@ -61,6 +63,9 @@ logging.debug('Base path: ' + data_path)
 if args.run_update:
     update.run(config)
 
+if args.get_request:
+    get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
+
 
 if args.diff:
     credentials = config['data']['credentials']
@@ -78,7 +83,9 @@ if args.name is not None:
         specific_update_scripts.skos.update(config)
 
 if args.test_skosify:
-    utility.skosify_file.run(args.url, config, args.label, args.file, namespace=args.namespace)
+    utility.skosify_file.run(args.url, config, args.label, args.file,
+                             namespace=args.namespace,
+                             default_language=args.default_language)
 
 
 

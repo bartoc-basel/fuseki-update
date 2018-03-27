@@ -1,15 +1,6 @@
 [
-    "http://www.ivoa.net/rdf/Vocabularies/IVOAT",
-    "http://id.loc.gov/static/data/authoritiessubjects",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTChronological",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTEvent",
-    "http://vocab.getty.edu/ulan/",
     "http://vocab.getty.edu/tgn/",
-    "http://ns.nature.com/relations/",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTTitle",
-    "http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical"
+    "http://id.loc.gov/static/data/authoritiessubjects",
+    "http://vocab.getty.edu/ulan/",
+    "http://ns.nature.com/relations/"
 ]

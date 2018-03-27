@@ -271,7 +271,7 @@ class FusekiUpdate(object):
         elif url.startswith('ftp'):
             import urllib.parse
             import ftplib
-            parts = urllib.parse.urlparse('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre.nt.zip')
+            parts = urllib.parse.urlparse(url)
             file_name = parts.path.split('/')[-1]
             path = parts.path.replace(file_name, '')
             ftp = ftplib.FTP(parts.netloc)
