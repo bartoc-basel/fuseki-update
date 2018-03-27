@@ -59,14 +59,20 @@ def update(config):
         g = Graph()
 
         g.bind('schema', SCHEMA)
+        g.bind('skos', SKOS)
+        g.bind('dct', DCTERMS)
+        g.bind('owl', OWL)
 
         logger.info('Parsing graph from %s.', path + file_name)
         g.parse(path + file_name, format='nt')
+
         add_type(g, SCHEMA.Event, SKOS.Concept)
         add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
+
         file_name = file_name.replace('.nt', '.ttl')
-        logger.info('Saving changed graph to %s.' + path + file_name)
-        g.serialize(destination=path + file_name, format='ttl')
+        logger.info('Saving changed graph to %s.', path + file_name)
+        voc = skosify.skosify(g)
+        voc.serialize(destination=path + file_name, format='ttl')
 
         logger.info('Refactored graph with prefLabels & Concepts.')
         put_graph(graph, open(path + file_name).read())
