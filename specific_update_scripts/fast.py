@@ -55,6 +55,8 @@ def update(config):
         logger.info('Downloaded and saved file in %s%s.', path, file_name)
 
         SCHEMA = Namespace('http://schema.org/')
+        PERIOD = Namespace('http://www.productontology.org/id/')
+
 
         g = Graph()
 
@@ -62,6 +64,7 @@ def update(config):
         g.bind('skos', SKOS)
         g.bind('dct', DCTERMS)
         g.bind('owl', OWL)
+        g.bind('period', PERIOD)
 
         logger.info('Parsing graph from %s.', path + file_name)
         g.parse(path + file_name, format='nt')
@@ -98,7 +101,10 @@ def update(config):
         add_type(g, SCHEMA.Event, SKOS.Concept)
         add_type(g, SCHEMA.CreativeWork, SKOS.Concept)
         add_type(g, SCHEMA.Intangible, SKOS.Concept)
+        add_type(g, PERIOD.Periodization, SKOS.Concept)
         add_type(g, SCHEMA.Person, SKOS.Concept)
+        add_type(g, SCHEMA.Place, SKOS.Concept)
+        add_type(g, SCHEMA.Organization, SKOS.Concept)
         add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
 
         add_language_tags(g, 'en')
