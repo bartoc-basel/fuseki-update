@@ -11,34 +11,23 @@ This script downloads all of the FAST vocabularies and makes them Skosmos ready.
 """
 
 
-fast_urls = {
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTEvent.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTitle.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTopical.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTChronological.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic.nt.zip',
-    'ftp://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre.nt.zip'
-}
-
-fast_sparql_graphs = {
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTEvent',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTTitle',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTChronological',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic',
-    'http://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre'
-}
+fast_urls_graph_names = [
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTEvent.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTEvent'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTitle.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTTitle'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTopical.nt.zip','http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTChronological.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTChronological'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre.nt.zip',  'http://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre')
+]
 
 
 def update(config):
     logger = logging.getLogger(__name__)
     temp_path = config['data']['base'] + config['data']['temporary']
 
-    for url, graph in zip(fast_urls, fast_sparql_graphs):
+    for url, graph in fast_urls_graph_names:
         logger.info('Loading %s into %s.', url, graph)
         import urllib.parse
         import ftplib
