@@ -52,19 +52,22 @@ def update(config):
         with open(path + file_name, 'w', encoding='utf-8') as file:
             file.write(text)
 
-            logger.info('Downloaded and saved file.')
+        logger.info('Downloaded and saved file in %s%s.', path, file_name)
 
         SCHEMA = Namespace('http://schema.org/')
 
         g = Graph()
 
-        g.parse(path + file_name, format='n3')
+        g.bind('schema', SCHEMA)
+
+        logger.info('Parsing graph from %s.', path + file_name)
+        g.parse(path + file_name, format='nt')
         add_type(g, SCHEMA.Event, SKOS.Concept)
         add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
-
-        file_name = file_name.replace('.n3', '.ttl')
+        file_name = file_name.replace('.nt', '.ttl')
+        logger.info('Saving changed graph to %s.' + path + file_name)
         g.serialize(destination=path + file_name, format='ttl')
 
         logger.info('Refactored graph with prefLabels & Concepts.')
-        put_graph(graph, open(path + file_name))
+        put_graph(graph, open(path + file_name).read())
         logger.info('Uploaded graph to Fuseki.')
