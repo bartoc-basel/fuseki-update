@@ -60,37 +60,37 @@ logging.basicConfig(**logging_options)
 
 data_path = config['data']['base']
 logging.debug('Base path: ' + data_path)
+try:
+    if args.run_update:
+        update.run(config)
 
-if args.run_update:
-    update.run(config)
-
-if args.get_request:
-    get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
-
-
-if args.diff:
-    credentials = config['data']['credentials']
-    c = pygsheets.authorize(outh_file=credentials + 'client_secrets.json',
-                            outh_creds_store=credentials,
-                            outh_nonlocal=True)
-    ss = c.open('update_fuseki')
-    wks = ss.sheet1
-    create_diff(config['data']['base'], wks)
-
-if args.name is not None:
-    if args.name == 'getty-ontology':
-        specific_update_scripts.getty_ontology.update(config)
-    if args.name == 'skos':
-        specific_update_scripts.skos.update(config)
-    if args.name == 'fast':
-        specific_update_scripts.fast.update(config)
-
-if args.test_skosify:
-    utility.skosify_file.run(args.url, config, args.label, args.file,
-                             namespace=args.namespace,
-                             default_language=args.default_language)
+    if args.get_request:
+        get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
 
 
+    if args.diff:
+        credentials = config['data']['credentials']
+        c = pygsheets.authorize(outh_file=credentials + 'client_secrets.json',
+                                outh_creds_store=credentials,
+                                outh_nonlocal=True)
+        ss = c.open('update_fuseki')
+        wks = ss.sheet1
+        create_diff(config['data']['base'], wks)
+
+    if args.name is not None:
+        if args.name == 'getty-ontology':
+            specific_update_scripts.getty_ontology.update(config)
+        if args.name == 'skos':
+            specific_update_scripts.skos.update(config)
+        if args.name == 'fast':
+            specific_update_scripts.fast.update(config)
+
+    if args.test_skosify:
+        utility.skosify_file.run(args.url, config, args.label, args.file,
+                                 namespace=args.namespace,
+                                 default_language=args.default_language)
+except Exception:
+    logging.exception('An error occured:')
 
 
 

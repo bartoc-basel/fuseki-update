@@ -1,5 +1,7 @@
-# fuseki-update
-Updates the vocabularies of the triple store. 
+### Fuseki CLI Tool
+A small cli to manage a fuseki triple store. 
+The main update [-all] loads data from a google spreadsheet and then updates them.
+
 
 
 
