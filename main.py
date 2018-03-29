@@ -65,7 +65,6 @@ try:
     if args.get_request:
         get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
 
-
     if args.diff:
         credentials = config['data']['credentials']
         c = pygsheets.authorize(outh_file=credentials + 'client_secrets.json',
@@ -84,7 +83,6 @@ try:
             specific.update_fast(config)
         if args.name == 'npg-ontology':
             specific.update_npg_ontology(config)
-
 
     if args.test_skosify:
         utility.skosify_file.run(args.url, config, args.label, args.file,
