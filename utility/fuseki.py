@@ -4,6 +4,10 @@ import logging
 import json
 
 
+class FusekiError(Exception):
+    """Fuseki has returned an error message!"""
+
+
 def delete_graph(uri):
     url = 'http://localhost:3030/skosmos/data?graph=' + uri
     response = requests.request('DELETE', url)
@@ -21,6 +25,7 @@ def put_graph(uri, data):
         logging.info(response.text)
     else:
         logging.error(response.text)
+        raise FusekiError('Could not upload file.')
 
 
 def get_graph(uri, path):

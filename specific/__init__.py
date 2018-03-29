@@ -1,0 +1,1 @@
+from specific.updates import update_fast, update_getty_program_ontology, update_npg_ontology, update_skos

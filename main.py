@@ -1,9 +1,7 @@
 from configparser import ConfigParser
 from utility.fuseki import *
 import utility.skosify_file
-import specific_update_scripts.getty_ontology
-import specific_update_scripts.skos
-import specific_update_scripts.fast
+import specific
 import update
 import argparse
 import logging
@@ -79,11 +77,14 @@ try:
 
     if args.name is not None:
         if args.name == 'getty-ontology':
-            specific_update_scripts.getty_ontology.update(config)
+            specific.update_getty_program_ontology(config)
         if args.name == 'skos':
-            specific_update_scripts.skos.update(config)
+            specific.update_skos(config)
         if args.name == 'fast':
-            specific_update_scripts.fast.update(config)
+            specific.update_fast(config)
+        if args.name == 'npg-ontology':
+            specific.update_npg_ontology(config)
+
 
     if args.test_skosify:
         utility.skosify_file.run(args.url, config, args.label, args.file,
