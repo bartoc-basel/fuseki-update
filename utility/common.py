@@ -59,6 +59,10 @@ def add_language_tags(graph, tag):
         graph.remove((subject, predicate, obj))
         graph.add((subject, predicate, Literal(obj.value, lang=tag)))
 
+    for (subject, predicate, obj) in graph.triples((None, SKOS.hiddenLabel, None)):
+        graph.remove((subject, predicate, obj))
+        graph.add((subject, predicate, Literal(obj.value, lang=tag)))
+
     for (subject, predicate, obj) in graph.triples((None, RDFS.label, None)):
         graph.remove((subject, predicate, obj))
         graph.add((subject, predicate, Literal(obj.value, lang=tag)))
