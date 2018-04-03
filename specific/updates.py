@@ -55,20 +55,22 @@ def update_npg_ontology(config):
 
 
 fast_urls_graph_names = [
-
-    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic.nt.zip',
-     'http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic'),
-    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTChronological.nt.zip',
-     'http://anonftp.oclc.org/pub/researchdata/fast/FASTChronological'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTopical.nt.zip',
+     'http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal.nt.zip',
+     'http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate.nt.zip',
+     'http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate'),
     ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre.nt.zip',
      'http://anonftp.oclc.org/pub/researchdata/fast/FASTFormGenre'),
-    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTopical.nt.zip','http://anonftp.oclc.org/pub/researchdata/fast/FASTTopical'),
-    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTPersonal'),
-    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate.nt.zip', 'http://anonftp.oclc.org/pub/researchdata/fast/FASTCorporate'),
     ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTEvent.nt.zip',
      'http://anonftp.oclc.org/pub/researchdata/fast/FASTEvent'),
     ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTTitle.nt.zip',
      'http://anonftp.oclc.org/pub/researchdata/fast/FASTTitle'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic.nt.zip',
+     'http://anonftp.oclc.org/pub/researchdata/fast/FASTGeographic'),
+    ('ftp://anonftp.oclc.org/pub/researchdata/fast/FASTChronological.nt.zip',
+     'http://anonftp.oclc.org/pub/researchdata/fast/FASTChronological'),
 ]
 
 
