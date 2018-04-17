@@ -287,9 +287,8 @@ class FusekiUpdate(object):
             self.sheet_updates.error_message = 'Invalid protocol: only HTTP[S] & FTP are supported!'
             raise DownloadError('Invalid protocol: only HTTP[S] & FTP are supported!')
 
-
         # save downloaded file locally to ensure that it is unzipped
-        #  and does not need to be downloaded again for getting an URI
+        # and does not need to be downloaded again for getting an URI
         file_name = self.temp_path + 'temporary.' + self.file_end.lower()
         if url.endswith('.zip'):
             z = zipfile.ZipFile(buffer)
