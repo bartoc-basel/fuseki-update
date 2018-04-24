@@ -15,7 +15,8 @@ def construct_aat_getty(config):
     path = config['data']['base'] + config['data']['vocabulary'] + 'aat/'
     if not os.path.exists(path):
         os.mkdir(path)
-    file_name = 'aat.ttl'
+
+
 
     logging.info('Download full aat zip!')
     response = requests.get(aat_full)
@@ -33,7 +34,7 @@ def construct_aat_getty(config):
     logging.info('Dowloaded aat. Start parsing of files.')
 
     aat = Graph()
-    aat.parse(path + 'base_ontology.ttl',)
+    aat.parse('http://vocab.getty.edu/ontology.rdf')
     aat.parse(path + 'AATOut_Full.nt')
     aat.parse(path + 'AATOut_Sources.nt')
     aat.parse(path + 'AATOut_Contribs.nt')

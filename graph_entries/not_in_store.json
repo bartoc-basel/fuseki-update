@@ -1,6 +1,4 @@
 [
-    "http://id.loc.gov/static/data/authoritiessubjects",
     "http://vocab.getty.edu/ulan/",
-    "http://vocab.getty.edu/tgn/",
-    "http://ns.nature.com/relations/"
+    "http://vocab.getty.edu/tgn/"
 ]
