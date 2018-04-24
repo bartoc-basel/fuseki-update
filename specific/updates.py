@@ -9,29 +9,28 @@ import os
 import requests
 
 
-def construct_aat_getty(config):
+def construct_aat_getty(config, download=False):
     """Download and transform the getty thesaurus AAT."""
     aat_full = 'http://vocab.getty.edu/dataset/aat/full.zip'
     path = config['data']['base'] + config['data']['vocabulary'] + 'aat/'
     if not os.path.exists(path):
         os.mkdir(path)
 
+    if download:
+        logging.info('Download full aat zip!')
+        response = requests.get(aat_full)
+        if response.ok:
+            logging.info('Successfully downloaded aat!')
+            buffer = BytesIO(response.content)
+            z = zipfile.ZipFile(buffer)
+            for n, i in zip(z.namelist(), z.infolist()):
+                logging.info('Uncompressed %s.', n)
+                tmp = z.read(i).decode('utf-8')
+                with open(path + str(n), 'w') as file:
+                    file.write(tmp)
+                    logging.info('Written %s to %s', n, path)
 
-
-    logging.info('Download full aat zip!')
-    response = requests.get(aat_full)
-    if response.ok:
-        logging.info('Successfully downloaded aat!')
-        buffer = BytesIO(response.content)
-        z = zipfile.ZipFile(buffer)
-        for n, i in zip(z.namelist(), z.infolist()):
-            logging.info('Uncompressed %s.', n)
-            tmp = z.read(i).decode('utf-8')
-            with open(path + str(n), 'w') as file:
-                file.write(tmp)
-                logging.info('Written %s to %s', n, path)
-
-    logging.info('Dowloaded aat. Start parsing of files.')
+        logging.info('Dowloaded aat. Start parsing of files.')
 
     aat = Graph()
     aat.parse('http://vocab.getty.edu/ontology.rdf')
