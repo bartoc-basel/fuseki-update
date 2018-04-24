@@ -6,6 +6,39 @@ from utility.fuseki import put_graph
 import zipfile
 from io import BytesIO
 import os
+import requests
+
+
+def construct_aat_getty(config):
+    """Download and transform the getty thesaurus AAT."""
+    aat_full = 'http://vocab.getty.edu/dataset/aat/full.zip'
+    path = config['data']['base'] + config['data']['vocabulary'] + 'aat/'
+    if not os.path.exists(path):
+        os.mkdir(path)
+    file_name = 'aat.ttl'
+
+    logging.info('Download full aat zip!')
+    response = requests.get(aat_full)
+    if response.ok:
+        logging.info('Successfully downloaded aat!')
+        buffer = BytesIO(response.content)
+        z = zipfile.ZipFile(buffer)
+        for n, i in zip(z.namelist(), z.infolist()):
+            logging.info('Uncompressed %s.', n)
+            tmp = z.read(i).decode('utf-8')
+            with open(path + str(n), 'w') as file:
+                file.write(tmp)
+                logging.info('Written %s to %s', n, path)
+
+    logging.info('Dowloaded aat. Start parsing of files.')
+
+    aat = Graph()
+    aat.parse(path + 'base_ontology.ttl',)
+    aat.parse(path + 'AATOut_Full.nt')
+    aat.parse(path + 'AATOut_Sources.nt')
+    aat.parse(path + 'AATOut_Contribs.nt')
+
+    aat.serialize(path + 'aat_full.ttl', format='ttl')
 
 
 def update_skos(config):

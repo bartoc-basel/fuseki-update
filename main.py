@@ -12,7 +12,8 @@ parser.add_argument('config', action='store', type=str, default='default.cfg',
                     help='Necessary configuration values for this module to run.')
 parser.add_argument('--config', action='store', type=str, dest='voc_config', default=None,
                     help='The config file used for this vocabulary in skosify. NYI')
-parser.add_argument('-all', action='store_true', dest='run_update')
+parser.add_argument('-all', action='store_true', dest='run_update',
+                    help='Run the main update script to update the tripple store from the google spreadsheet.')
 parser.add_argument('-specific', action='store', dest='name', default=None)
 
 parser.add_argument('-delete', dest='delete_request', action='store_true')
@@ -83,6 +84,8 @@ try:
             specific.update_fast(config)
         if args.name == 'npg-ontology':
             specific.update_npg_ontology(config)
+        if args.name == 'aat':
+            specific.construct_aat_getty(config)
 
     if args.test_skosify:
         utility.skosify_file.run(args.url, config, args.label, args.file,
