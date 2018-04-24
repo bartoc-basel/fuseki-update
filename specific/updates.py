@@ -1,4 +1,5 @@
 from rdflib import Graph, Namespace, URIRef
+from rdflib.util import guess_format
 import skosify
 import logging
 from utility.common import *
@@ -33,10 +34,10 @@ def construct_aat_getty(config, download=False):
         logging.info('Dowloaded aat. Start parsing of files.')
 
     aat = Graph()
-    aat.parse('http://vocab.getty.edu/ontology.rdf')
-    aat.parse(path + 'AATOut_Full.nt')
-    aat.parse(path + 'AATOut_Sources.nt')
-    aat.parse(path + 'AATOut_Contribs.nt')
+    aat.parse('http://vocab.getty.edu/ontology.rdf', format=guess_format('rdf'))
+    aat.parse(path + 'AATOut_Full.nt', format=guess_format('nt'))
+    aat.parse(path + 'AATOut_Sources.nt', format=guess_format('nt'))
+    aat.parse(path + 'AATOut_Contribs.nt', format=guess_format('nt'))
 
     aat.serialize(path + 'aat_full.ttl', format='ttl')
 
