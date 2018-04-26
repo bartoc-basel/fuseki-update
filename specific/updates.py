@@ -20,21 +20,24 @@ def construct_aat_getty(config, download=False):
     file_name = 'aat_full.ttl'
 
     if download:
-        logging.info('Download full aat zip!')
+        logging.info('Downloading "The Art & Architecture Thesaurus".')
         response = requests.get(aat_full)
         if response.ok:
-            logging.info('Successfully downloaded aat!')
+            logging.info('Download was successful.')
             buffer = BytesIO(response.content)
             z = zipfile.ZipFile(buffer)
             for n, i in zip(z.namelist(), z.infolist()):
-                logging.info('Uncompressed %s.', n)
+                logging.info('Extracting archives...', n)
                 tmp = z.read(i).decode('utf-8')
                 with open(path + str(n), 'w') as file:
                     file.write(tmp)
-                    logging.info('Written %s to %s', n, path)
+                    logging.info('Extracted %s to %s', n, path)
+        else:
+            logging.critical('Was unable to download the file. Exit program.')
+            import sys
+            sys.exit(1)
 
-        logging.info('Dowloaded aat. Start parsing of files.')
-
+    logging.info('Begin parsing of the ontology.')
     aat = Graph()
     aat.parse('http://vocab.getty.edu/ontology.rdf', format=guess_format('rdf'))
     aat.parse(path + 'AATOut_Full.nt', format=guess_format('nt'))
