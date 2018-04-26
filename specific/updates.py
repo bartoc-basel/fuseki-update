@@ -17,6 +17,8 @@ def construct_aat_getty(config, download=False):
     if not os.path.exists(path):
         os.mkdir(path)
 
+    file_name = 'aat_full.ttl'
+
     if download:
         logging.info('Download full aat zip!')
         response = requests.get(aat_full)
@@ -39,7 +41,10 @@ def construct_aat_getty(config, download=False):
     aat.parse(path + 'AATOut_Sources.nt', format=guess_format('nt'))
     aat.parse(path + 'AATOut_Contribs.nt', format=guess_format('nt'))
 
-    aat.serialize(path + 'aat_full.ttl', format='ttl')
+    aat = skosify.skosify(aat)
+    aat.serialize(path + file_name, format='ttl')
+
+    put_graph('http://vocab.getty.edu/aat/', path + file_name)
 
 
 def update_skos(config):
