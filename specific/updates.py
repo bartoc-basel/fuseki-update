@@ -40,11 +40,17 @@ def construct_aat_getty(config, download=False):
     logging.info('Begin parsing of the ontology.')
     aat = Graph()
     aat.parse('http://vocab.getty.edu/ontology.rdf', format=guess_format('rdf'))
+    logging.info('Parsed base ontology.')
     aat.parse(path + 'AATOut_Full.nt', format=guess_format('nt'))
+    logging.info('Parsed Full AAT file.')
     aat.parse(path + 'AATOut_Sources.nt', format=guess_format('nt'))
+    logging.info('Parsed sources file.')
     aat.parse(path + 'AATOut_Contribs.nt', format=guess_format('nt'))
+    logging.info('Parsed contributors.')
 
-    aat = skosify.skosify(aat)
+    aat.serialize(path + file_name, format='ttl')
+
+    aat = skosify.skosify(path + file_name)
     aat.serialize(path + file_name, format='ttl')
 
     put_graph('http://vocab.getty.edu/aat/', path + file_name)
