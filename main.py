@@ -25,6 +25,7 @@ parser.add_argument('--uri', nargs='?', default='')
 parser.add_argument('--url', nargs='?', default='')
 parser.add_argument('-t', dest='test_skosify', action='store_true')
 parser.add_argument('-l', dest='label', action='store')
+parser.add_argument('-d', dest='download', action='store_true', help='Download the file and do not just load it from disc. Default False.')
 parser.add_argument('--namespace', action='store', default=None)
 parser.add_argument('--default-language', action='store', default=None)
 
@@ -85,7 +86,7 @@ try:
         if args.name == 'npg-ontology':
             specific.update_npg_ontology(config)
         if args.name == 'aat':
-            specific.construct_aat_getty(config)
+            specific.construct_aat_getty(config, download=args.download if hasattr(args, 'download') else False)
 
     if args.test_skosify:
         utility.skosify_file.run(args.url, config, args.label, args.file,
