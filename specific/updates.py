@@ -50,7 +50,7 @@ def construct_aat_getty(config, download=False):
 
     aat.serialize(path + file_name, format='ttl')
 
-    aat = skosify.skosify(path + file_name)
+    aat = skosify.skosify(path + file_name, format='ttl')
     aat.serialize(path + file_name, format='ttl')
 
     put_graph('http://vocab.getty.edu/aat/', path + file_name)
