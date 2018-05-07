@@ -48,9 +48,9 @@ def construct_aat_getty(config, download=False):
     aat.parse(path + 'AATOut_Contribs.nt', format=guess_format('nt'))
     logging.info('Parsed contributors.')
 
-    aat.serialize(path + file_name, format='ttl')
+    aat.serialize(path + file_name, format='nt')
 
-    aat = skosify.skosify(path + file_name, format='ttl')
+    aat = skosify.skosify(path + file_name)
     aat.serialize(path + file_name, format='ttl')
 
     put_graph('http://vocab.getty.edu/aat/', path + file_name)
