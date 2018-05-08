@@ -22,6 +22,7 @@ TURTLE_MIME_TYPE = 'application/x-turtle'
 N3_MIME_TYPE = 'text/n3; charset=utf-8'
 NT_MIME_TYPE = 'application/n-triples'
 RDF_MIME_TYPE = 'application/rdf-xml'
+JSON_LD_MIME_TYPE = 'application/json'
 
 # Column value of sheet
 TITLE = 0
@@ -93,7 +94,7 @@ class SkosifiedGraph(object):
         :raises Various errors when the file can't be parsed or serialized.
         """
         try:
-            self.rdf.parse(self.file_name, format=guess_format(self.format))
+            self.rdf.parse(self.file_name, format='json-ld' if self.format == 'json' else guess_format(self.format))
         except (ParserError, BadSyntax) as error:
             self.update.error_type = 'PARSER ERROR'
             self.update.error_message = str(error)
@@ -105,6 +106,7 @@ class SkosifiedGraph(object):
         if self.namespace == '':
             self.detect_namespace()
         try:
+            self.rdf.serialize(destination='test.ttl', format='ttl')
             # Does some magic to the vocabulary.
             # Documentation is somewhat sparse but can be found here: https://github.com/NatLibFi/Skosify
             self.rdf = skosify.skosify(self.rdf, label=self.name, namespace=self.namespace,
@@ -232,9 +234,11 @@ class FusekiUpdate(object):
             return N3_MIME_TYPE
         elif file_type == 'nt':
             return NT_MIME_TYPE
+        elif file_type == 'json':
+            return JSON_LD_MIME_TYPE
         else:
             self.sheet_updates.error_type = "FILE TYPE ERROR"
-            self.sheet_updates.error_message = 'Invalid MIME Type: expected RDF, TTL, N3 or NT, found ' + \
+            self.sheet_updates.error_message = 'Invalid MIME Type: expected RDF, TTL, N3, NT or JSON, found ' + \
                                                file_type + '.'
             raise InvalidMIMETypeError('Invalid MIME Type found: ' + file_type + '.')
 
@@ -312,7 +316,7 @@ class FusekiUpdate(object):
         :raises FusekiUploadError  if response status code is lower than 200 or higher than 300.
         """
         with open(self.temp_path + self.local_file_name, 'r', encoding='utf-8') as file:
-            data = {'name': (self.local_file_name, file.read(), self.mime_type)}
+            data = {'name': (self.short_name.lower(), file.read(), self.mime_type)}
             if self.sparql_graph == '':
                 self.sheet_updates.error_type = 'NO GRAPH NAME'
                 self.sheet_updates.error_message = 'A graph name is required for a upload to take place. Once set' \
@@ -320,11 +324,7 @@ class FusekiUpdate(object):
                 raise FusekiUploadError
             basic_url = 'http://localhost:3030/skosmos/data?graph=' + self.sparql_graph
 
-            # delete the graph if it exists. Otherwise updates to values would get added as additional triples.
-            # the deletion is silent if some data has duplicate triples then this probably failed.
-            # requests.request('DELETE', basic_url)
-
-            # upload graph to server.
+            # replace graph on server. overwrites existing data.
             response = requests.request('PUT', basic_url, files=data)
 
             if not response.ok:

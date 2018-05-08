@@ -4,7 +4,7 @@ from rdflib.namespace import SKOS
 
 if __name__ == '__main__':
     p = Graph()
-    p.parse('http://bartoc.org/sites/default/files/skos_files/UTU.rdf', format='xml')
+    p.parse('http://bartoc.org/sites/default/files/skos_files/UTU.rdf', format='json-ld')
 
     concept_scheme = list(p.subjects(RDF.type, SKOS.ConceptScheme))[0]
     print(list(p.objects(concept_scheme, None)))
