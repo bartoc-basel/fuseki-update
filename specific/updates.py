@@ -10,7 +10,65 @@ import os
 import requests
 
 
-def update_teaaypyc_pytex(config):
+def update_yarn(config):
+    """Download and transform Yet Another RussNet."""
+
+    path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    file_name = 'yarn'
+
+    LEMON = Namespace('http://lemon-model.net/lemon#')
+
+    logging.info('Download graph.')
+    g = Graph()
+
+    g.bind('lemon', LEMON)
+    g.bind('lexinfo', Namespace('http://www.lexinfo.net/ontology/2.0/lexinfo#'))
+
+    g.parse('http://depot.nlpub.ru/rtlod/yarn.ttl', format='ttl')
+
+    add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
+
+    voc = skosify.skosify(g, mark_top_concepts=True,
+                          eliminate_redundancy=True, break_cycles=True, keep_related=False,
+                          cleanup_classes=True, cleanup_properties=True, cleanup_unreachable=True)
+    voc.serialize(path + file_name + '.ttl', format='ttl')
+
+    put_graph('http://depot.nlpub.ru/rtlod/yarn.ttl', open(path + file_name + '.ttl').read())
+
+
+def update_unldc(config):
+    """Download and transform Universal Dictionary Concepts."""
+
+    path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    file_name = 'unldc'
+
+    LEMON = Namespace('http://lemon-model.net/lemon#')
+
+    logging.info('Download graph.')
+    g = Graph()
+
+    g.bind('lemon', LEMON)
+    g.bind('lexinfo', Namespace('http://www.lexinfo.net/ontology/2.0/lexinfo#'))
+
+    g.parse('http://depot.nlpub.ru/rtlod/unldc.ttl', format='ttl')
+
+    add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
+
+    voc = skosify.skosify(g, mark_top_concepts=True,
+                          eliminate_redundancy=True, break_cycles=True, keep_related=False,
+                          cleanup_classes=True, cleanup_properties=True, cleanup_unreachable=True)
+    voc.serialize(path + file_name + '.ttl', format='ttl')
+
+    put_graph('http://unl.ru/', open(path + file_name + '.ttl').read())
+
+
+def update_rusthes(config):
     """Download and transform Тезаурус РуТез."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -31,7 +89,9 @@ def update_teaaypyc_pytex(config):
 
     add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
 
-    voc = skosify.skosify(g)
+    voc = skosify.skosify(g, mark_top_concepts=True,
+                          eliminate_redundancy=True, break_cycles=True, keep_related=False,
+                          cleanup_classes=True, cleanup_properties=True, cleanup_unreachable=True)
     voc.serialize(path + file_name + '.ttl', format='ttl')
 
     put_graph('http://labinform.ru/pub/ruthes/', open(path + file_name + '.ttl').read())

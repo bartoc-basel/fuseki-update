@@ -97,7 +97,11 @@ try:
         if args.name == 'aat':
             specific.construct_aat_getty(config, download=args.download if hasattr(args, 'download') else False)
         if args.name == 'rusthes':
-            specific.update_teaaypyc_pytex(config)
+            specific.update_rusthes(config)
+        if args.name == 'unldc':
+            specific.update_unldc(config)
+        if args.name == 'yarn':
+            specific.update_yarn(config)
 
     if args.test_skosify:
         utility.skosify_file.run(args.url, config, args.label, args.file,
