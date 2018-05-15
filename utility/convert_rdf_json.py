@@ -14,6 +14,7 @@ links = ['http://onomy.org/published/73/skos',
             'http://onomy.org/published/79/skos',
             'http://onomy.org/published/72/skos'
 ]
+
 if __name__ == '__main__':
 
     for i, link in enumerate(links):
@@ -64,4 +65,4 @@ if __name__ == '__main__':
             for _, _, title in g.triples((s, DCTERMS.title, None)):
                 title = title.toPython()
 
-        g.serialize(title + '.ttl', format='ttl')
+        g.serialize('output/' + title + '.ttl', format='ttl')
