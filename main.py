@@ -14,7 +14,8 @@ parser.add_argument('--config', action='store', type=str, dest='voc_config', def
                     help='The config file used for this vocabulary in skosify. NYI')
 parser.add_argument('-all', action='store_true', dest='run_update',
                     help='Run the main update script to update the tripple store from the google spreadsheet.')
-parser.add_argument('-s', action='store', dest='name', default=None)
+parser.add_argument('-s', action='store', dest='name', default=None, help='The name of a specific thesaurus to be '
+                                                                          'loaded/updated.')
 
 parser.add_argument('-delete', dest='delete_request', action='store_true')
 parser.add_argument('-put', dest='put_request', action='store_true')
@@ -49,7 +50,6 @@ else:
         logging_options[key] = val
 
     logging_options['filename'] = config['data']['base'] + config['data']['output'] + logging_options['filename']
-
 
     debug_levels = {
         'debug': logging.DEBUG,

@@ -21,9 +21,18 @@ def update_teaaypyc_pytex(config):
 
     logging.info('Download graph.')
     g = Graph()
+
+    g.bind('lemon', Namespace('http://lemon-model.net/lemon#'))
+    g.bind('lexinfo', Namespace('http://www.lexinfo.net/ontology/2.0/lexinfo#'))
+
     g.parse('http://depot.nlpub.ru/rtlod/ruthes-lite.ttl', format='ttl')
+
+    add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
+
     voc = skosify.skosify(g)
     voc.serialize(path + file_name + '.ttl', format='ttl')
+
+    put_graph('http://labinform.ru/pub/ruthes/', path + file_name + '.ttl')
 
 
 def construct_aat_getty(config, download=False):
