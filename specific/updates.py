@@ -29,11 +29,6 @@ def update_teaaypyc_pytex(config):
 
     g.parse('http://depot.nlpub.ru/rtlod/ruthes-lite.ttl', format='ttl')
 
-    add_type(g, LEMON.Lexicon, SKOS.ConceptScheme)
-    add_type(g, LEMON.LexicalEntry, SKOS.Concept)
-    add_type(g, LEMON.LexicalSense, SKOS.Concept)
-    add_type(g, LEMON.LexicalForm, SKOS.Concept)
-
     add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
 
     voc = skosify.skosify(g)
