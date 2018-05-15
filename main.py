@@ -87,6 +87,8 @@ try:
             specific.update_npg_ontology(config)
         if args.name == 'aat':
             specific.construct_aat_getty(config, download=args.download if hasattr(args, 'download') else False)
+        if args.name == 'rusthes':
+            specific.update_teaaypyc_pytex(config)
 
     if args.test_skosify:
         utility.skosify_file.run(args.url, config, args.label, args.file,

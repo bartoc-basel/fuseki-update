@@ -10,6 +10,22 @@ import os
 import requests
 
 
+def update_teaaypyc_pytex(config):
+    """Download and transform Тезаурус РуТез."""
+
+    path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    file_name = 'ruthes'
+
+    logging.info('Download graph.')
+    g = Graph()
+    g.parse('http://depot.nlpub.ru/rtlod/ruthes-lite.ttl', format='ttl')
+    voc = skosify.skosify(g)
+    voc.serialize(path + file_name + '.ttl', format='ttl')
+
+
 def construct_aat_getty(config, download=False):
     """Download and transform the getty thesaurus AAT."""
     aat_full = 'http://vocab.getty.edu/dataset/aat/full.zip'
