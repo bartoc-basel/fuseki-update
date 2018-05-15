@@ -19,20 +19,27 @@ def update_teaaypyc_pytex(config):
 
     file_name = 'ruthes'
 
+    LEMON = Namespace('http://lemon-model.net/lemon#')
+
     logging.info('Download graph.')
     g = Graph()
 
-    g.bind('lemon', Namespace('http://lemon-model.net/lemon#'))
+    g.bind('lemon', LEMON)
     g.bind('lexinfo', Namespace('http://www.lexinfo.net/ontology/2.0/lexinfo#'))
 
     g.parse('http://depot.nlpub.ru/rtlod/ruthes-lite.ttl', format='ttl')
+
+    add_type(g, LEMON.Lexicon, SKOS.ConceptScheme)
+    add_type(g, LEMON.LexicalEntry, SKOS.Concept)
+    add_type(g, LEMON.LexicalSense, SKOS.Concept)
+    add_type(g, LEMON.LexicalForm, SKOS.Concept)
 
     add_skos_predicate_variant(g, RDFS.label, SKOS.prefLabel)
 
     voc = skosify.skosify(g)
     voc.serialize(path + file_name + '.ttl', format='ttl')
 
-    put_graph('http://labinform.ru/pub/ruthes/', path + file_name + '.ttl')
+    put_graph('http://labinform.ru/pub/ruthes/', open(path + file_name + '.ttl').read())
 
 
 def construct_aat_getty(config, download=False):
@@ -78,7 +85,7 @@ def construct_aat_getty(config, download=False):
     aat = skosify.skosify(path + file_name)
     aat.serialize(path + file_name, format='ttl')
 
-    put_graph('http://vocab.getty.edu/aat/', path + file_name)
+    put_graph('http://vocab.getty.edu/aat/', open(path + file_name).read())
 
 
 def update_skos(config):
@@ -107,7 +114,7 @@ def update_skos(config):
     voc = skosify.skosify(g)
     voc.serialize(path + file_name, format='ttl')
     logging.info('Upload skos to graph %s.', uri)
-    put_graph(uri, open(path + file_name))
+    put_graph(uri, open(path + file_name).read())
 
 
 def update_npg_ontology(config):
@@ -314,4 +321,4 @@ def update_getty_program_ontology(config):
     voc = skosify.skosify(path + file_name + '.ttl')
     voc.serialize(path + file_name_skosified + '.ttl', format='ttl')
 
-    put_graph('http://vocab.getty.edu/ontology', open(path + file_name_skosified + '.ttl'))
+    put_graph('http://vocab.getty.edu/ontology', open(path + file_name_skosified + '.ttl').read())
