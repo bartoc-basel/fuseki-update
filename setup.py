@@ -27,5 +27,7 @@ setup(
     keywords='fuseki triple-store skos skosmos skosify',
     packages=['pyfusekiutil'],
     install_requires=['pygsheets', 'rdflib', 'SPARQLWrapper', 'requests', 'skosify'],
-    entry_points={'console_scripts': ['fuseki=cli:main']}
+    entry_points={
+        'console_scripts': ['pyfuseki = pyfusekiutil.cli:main']
+    }
 )
