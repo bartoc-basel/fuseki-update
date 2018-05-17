@@ -15,7 +15,6 @@ import zipfile
 import time
 import pygsheets
 import googleapiclient.errors
-import ftplib
 
 # The MIME Types for the possible rdf file formats. Needed to upload a file on apache jena.
 TURTLE_MIME_TYPE = 'application/x-turtle'

@@ -1,13 +1,17 @@
+import logging
+import zipfile
+import io
+import os
+
+import requests
+import skosify
 from rdflib import Graph, Namespace, URIRef
 from rdflib.util import guess_format
-import skosify
-import logging
-from utility.common import *
-from utility.fuseki import put_graph
-import zipfile
-from io import BytesIO
-import os
-import requests
+
+from pyfusekiutils.fuseki_utility import put_graph
+from pyfusekiutils.rdf_utility import *
+
+"""Various update functions for Thesauri/Ontologies which are not in SKOS or proper SKOS."""
 
 
 def update_yarn(config):
@@ -111,7 +115,7 @@ def construct_aat_getty(config, download=False):
         response = requests.get(aat_full)
         if response.ok:
             logging.info('Download was successful.')
-            buffer = BytesIO(response.content)
+            buffer = io.BytesIO(response.content)
             z = zipfile.ZipFile(buffer)
             for n, i in zip(z.namelist(), z.infolist()):
                 logging.info('Extracting archives...', n)
@@ -226,7 +230,7 @@ def update_fast(config):
         ftp.retrbinary('RETR ' + file_name, open(temp_path + file_name, 'wb').write)
         ftp.quit()
         with open(temp_path + file_name, 'rb') as file:
-            buffer = BytesIO(file.read())
+            buffer = io.BytesIO(file.read())
 
         z = zipfile.ZipFile(buffer)
         text = z.read(z.infolist()[0]).decode('utf-8')

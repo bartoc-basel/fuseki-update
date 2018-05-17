@@ -1,8 +1,16 @@
 from rdflib import Literal
 from rdflib.namespace import SKOS, RDF, RDFS, OWL, DCTERMS, DC, VOID, FOAF, XSD, XMLNS, DOAP
 
+"""Common utility functions to manipulate RDF Triple Graphs."""
+
 
 def remove_subject(graph, uri):
+    """Remove all triples of a subject.
+
+    :param graph:   The graph from which the triples will be removed.
+    :param uri:     The uri of the subject that will be removed. (URIRef)
+    :return:
+    """
     for (s, p, o) in graph.triples((uri, None, None)):
         graph.remove((s, p, o))
 

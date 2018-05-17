@@ -1,8 +1,4 @@
 from configparser import ConfigParser
-from utility.fuseki import *
-import utility.skosify_file
-import specific
-import update
 import argparse
 import logging
 import pygsheets
