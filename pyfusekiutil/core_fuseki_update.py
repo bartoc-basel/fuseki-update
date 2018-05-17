@@ -350,7 +350,7 @@ class FusekiUpdate(object):
         return result
 
 
-def run(config):
+def update_fuseki(config):
     try:
         credentials = config['data']['base'] + config['data']['credentials']
         temp_path = config['data']['base'] + config['data']['temporary']

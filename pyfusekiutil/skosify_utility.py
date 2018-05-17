@@ -2,7 +2,7 @@ import skosify
 import requests
 
 
-def run(url, config, name, file_name, default_language=None, namespace=None):
+def skosfiy(url, config, name, file_name, default_language=None, namespace=None):
     response = requests.get(url)
     if response.ok:
         with open(config['data']['temporary'] + file_name, 'w') as file:

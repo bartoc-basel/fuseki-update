@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md'), 'r', encoding='utf-8') as f:
     long_description = f.read()
 
-with open('pyfusekiutils/__init.py', 'r') as f:
+with open('pyfusekiutil/__init__.py', 'r') as f:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
 
 setup(
@@ -21,11 +21,11 @@ setup(
     author='Jonas Waeber',
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Indended Audience :: Developers'
+        'Intended Audience :: Developers',
         'Programming Language :: Python :: 3.6'
     ],
-    keywords='fuseki triple-store unibas rdf',
-    packages=['pyfusekiutils'],
+    keywords='fuseki triple-store skos skosmos skosify',
+    packages=['pyfusekiutil'],
     install_requires=['pygsheets', 'rdflib', 'SPARQLWrapper', 'requests', 'skosify'],
-    entry_points={'console_scripts': ['fuseki=cli']}
+    entry_points={'console_scripts': ['fuseki=cli:main']}
 )

@@ -8,8 +8,8 @@ import skosify
 from rdflib import Graph, Namespace, URIRef
 from rdflib.util import guess_format
 
-from pyfusekiutils.fuseki_utility import put_graph
-from pyfusekiutils.rdf_utility import *
+from pyfusekiutil.fuseki_utility import put_graph
+from pyfusekiutil.rdf_utility import *
 
 """Various update functions for Thesauri/Ontologies which are not in SKOS or proper SKOS."""
 
