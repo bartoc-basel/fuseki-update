@@ -1,5 +1,6 @@
 from setuptools import setup
 import os
+import re
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -7,9 +8,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md'), 'r', encoding='utf-8') as f:
     long_description = f.read()
 
+with open('pyfusekiutils/__init.py', 'r') as f:
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+
 setup(
     name='pyfusekiutil',
-    version='0.1.0',
+    version=version,
     description='Manage a Fuseki-Triple Store',
     long_description=long_description,
     long_description_content_type='text/markdown',
