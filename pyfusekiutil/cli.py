@@ -11,6 +11,17 @@ from pyfusekiutil.updates import *
 
 
 def main():
+    specific_functions = {
+        'getty-ontology': update_getty_program_ontology,
+        'skos': update_skos,
+        'fast': update_fast,
+        'npg-ontology': update_npg_ontology,
+        'aat': construct_aat_getty,
+        'rusthes': update_rusthes,
+        'unldc': update_unldc,
+        'yarn': update_yarn
+    }
+
     parser = argparse.ArgumentParser(description='A command line tool to update & manage the fuseki triple store.')
     parser.add_argument('config', action='store', type=str, default='default.cfg',
                         help='Necessary configuration values for this module to run.')
@@ -18,8 +29,9 @@ def main():
                         help='The config file used for this vocabulary in skosify. NYI')
     parser.add_argument('-all', action='store_true', dest='run_update',
                         help='Run the main update script to update the tripple store from the google spreadsheet.')
-    parser.add_argument('-s', action='store', dest='name', default=None, help='The name of a specific thesaurus to be '
-                                                                              'loaded/updated.')
+    parser.add_argument('-s', action='store', dest='name', default=None,
+                        help='The name of a specific thesaurus to be loaded/updated. Accepts one of the following '
+                             'values: {}.'.format(specific_functions.keys()))
 
     parser.add_argument('-delete', dest='delete_request', action='store_true')
     parser.add_argument('-put', dest='put_request', action='store_true')
@@ -30,8 +42,8 @@ def main():
     parser.add_argument('--url', nargs='?', default='')
     parser.add_argument('-t', dest='test_skosify', action='store_true')
     parser.add_argument('-l', dest='label', action='store')
-    parser.add_argument('-k', dest='download', action='store_true', help='Download the file and do not just load it from '
-                                                                         'disc. Default False.')
+    parser.add_argument('-k', dest='download', action='store_true', default=False,
+                        help='Download the file and do not just load it from disc.')
     parser.add_argument('--namespace', action='store', default=None)
     parser.add_argument('--default-language', action='store', default=None)
 
@@ -80,7 +92,7 @@ def main():
             get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
 
         if args.diff:
-            credentials = config['data']['credentials']
+            credentials = config['data']['base'] + config['data']['credentials']
             c = pygsheets.authorize(outh_file=credentials + 'client_secrets.json',
                                     outh_creds_store=credentials,
                                     outh_nonlocal=True)
@@ -89,22 +101,8 @@ def main():
             create_diff(config['data']['base'], wks)
 
         if args.name is not None:
-            if args.name == 'getty-ontology':
-                update_getty_program_ontology(config)
-            if args.name == 'skos':
-                update_skos(config)
-            if args.name == 'fast':
-                update_fast(config)
-            if args.name == 'npg-ontology':
-                update_npg_ontology(config)
-            if args.name == 'aat':
-                construct_aat_getty(config, download=args.download if hasattr(args, 'download') else False)
-            if args.name == 'rusthes':
-                update_rusthes(config)
-            if args.name == 'unldc':
-                update_unldc(config)
-            if args.name == 'yarn':
-                update_yarn(config)
+            if args.name in specific_functions.keys():
+                specific_functions[args.name](config, download=args.download)
 
         if args.test_skosify:
             skosfiy(args.url, config, args.label, args.file, namespace=args.namespace,

@@ -14,7 +14,7 @@ from pyfusekiutil.rdf_utility import *
 """Various update functions for Thesauri/Ontologies which are not in SKOS or proper SKOS."""
 
 
-def update_yarn(config):
+def update_yarn(config, download=False):
     """Download and transform Yet Another RussNet."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -43,7 +43,7 @@ def update_yarn(config):
     put_graph('http://depot.nlpub.ru/rtlod/yarn.ttl', open(path + file_name + '.ttl').read())
 
 
-def update_unldc(config):
+def update_unldc(config, download=False):
     """Download and transform Universal Dictionary Concepts."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -72,7 +72,7 @@ def update_unldc(config):
     put_graph('http://unl.ru/', open(path + file_name + '.ttl').read())
 
 
-def update_rusthes(config):
+def update_rusthes(config, download=False):
     """Download and transform Тезаурус РуТез."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -147,7 +147,7 @@ def construct_aat_getty(config, download=False):
     put_graph('http://vocab.getty.edu/aat/', open(path + file_name).read())
 
 
-def update_skos(config):
+def update_skos(config, download=False):
     """Download, transform and upload the SKOS vocabulary."""
     uri = 'http://www.w3.org/2004/02/skos/core'
     path = config['data']['base'] + config['data']['vocabulary'] + 'skos/'
@@ -176,7 +176,7 @@ def update_skos(config):
     put_graph(uri, open(path + file_name).read())
 
 
-def update_npg_ontology(config):
+def update_npg_ontology(config, download=False):
     url = 'https://raw.githubusercontent.com/springernature/public-npg-domain-ontology/master/npg-relations-ontology.ttl'
     uri = 'http://ns.nature.com/relations/'
 
@@ -213,7 +213,7 @@ fast_urls_graph_names = [
 ]
 
 
-def update_fast(config):
+def update_fast(config, download=False):
     logger = logging.getLogger(__name__)
     temp_path = config['data']['base'] + config['data']['temporary']
 
@@ -309,7 +309,7 @@ def update_fast(config):
         logger.info('Uploaded graph to Fuseki.')
 
 
-def update_getty_program_ontology(config):
+def update_getty_program_ontology(config, download=False):
     """Downloading, transforming and uploadinmg the Getty Program Ontology."""
 
     ontology = 'http://vocab.getty.edu/ontology.rdf'
