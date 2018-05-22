@@ -40,7 +40,9 @@ def main():
     parser.add_argument('-f', dest='file', action='store', default='output.ttl')
     parser.add_argument('--uri', nargs='?', default='')
     parser.add_argument('--url', nargs='?', default='')
-    parser.add_argument('-t', dest='test_skosify', action='store_true')
+    parser.add_argument('-t', dest='skosify', action='store_true', help='skosfiy(args.url, config, args.label, '
+                                                                        'args.file, namespace=args.namespace, '
+                                                                        'default_language=args.default_language)')
     parser.add_argument('-l', dest='label', action='store')
     parser.add_argument('-k', dest='download', action='store_true', default=False,
                         help='Download the file and do not just load it from disc.')
@@ -104,7 +106,7 @@ def main():
             if args.name in specific_functions.keys():
                 specific_functions[args.name](config, download=args.download)
 
-        if args.test_skosify:
+        if args.skosify:
             skosfiy(args.url, config, args.label, args.file, namespace=args.namespace,
                     default_language=args.default_language)
     except Exception:
