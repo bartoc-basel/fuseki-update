@@ -1,9 +1,10 @@
 import skosify
 import requests
 
+
 def skosfiy(url, config, name, file_name, default_language=None, namespace=None):
     response = requests.get(url)
-    path = config['data']['temporary'] + file_name
+    path = config['data']['base'] + config['data']['temporary'] + file_name
     if response.ok:
         with open(path, 'w+') as file:
             file.write(response.text)
