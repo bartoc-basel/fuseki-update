@@ -1,13 +1,13 @@
 import skosify
 import requests
 
-
 def skosfiy(url, config, name, file_name, default_language=None, namespace=None):
     response = requests.get(url)
+    path = config['data']['temporary'] + file_name
     if response.ok:
-        with open(config['data']['temporary'] + file_name, 'w') as file:
+        with open(path, 'w+') as file:
             file.write(response.text)
-        voc = skosify.skosify(config['data']['temporary'] + file_name,
+        voc = skosify.skosify(path,
                               label=name,
                               namespace=namespace,
                               default_language=default_language,
@@ -19,4 +19,4 @@ def skosfiy(url, config, name, file_name, default_language=None, namespace=None)
                               cleanup_properties=True,
                               cleanup_unreachable=True
                               )
-        voc.serialize(config['data']['vocabulary'] + file_name + '.ttl', format='ttl')
+        voc.serialize(path.split('.')[0] + '.ttl', format='ttl')
