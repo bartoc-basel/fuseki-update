@@ -364,7 +364,7 @@ def update_fuseki(config, lines: int):
         if lines == -1:
             num_col = len(sheet.get_col(1))
         else:
-            num_col = lines
+            num_col = 1 + lines
         for i in range(2, num_col):
             try:
                 row = sheet.get_row(i)
