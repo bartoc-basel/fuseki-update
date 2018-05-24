@@ -350,7 +350,7 @@ class FusekiUpdate(object):
         return result
 
 
-def update_fuseki(config):
+def update_fuseki(config, lines: int):
     try:
         credentials = config['data']['base'] + config['data']['credentials']
         temp_path = config['data']['base'] + config['data']['temporary']
@@ -360,7 +360,11 @@ def update_fuseki(config):
                                 outh_nonlocal=True)
         sheet = c.open(config['sheet']['sheet_name']).sheet1
 
-        num_col = len(sheet.get_col(1))
+        # run through the entire script if lines is -1. Otherwise only run the number of lines given.
+        if lines == -1:
+            num_col = len(sheet.get_col(1))
+        else:
+            num_col = lines
         for i in range(2, num_col):
             try:
                 row = sheet.get_row(i)

@@ -27,8 +27,10 @@ def main():
                         help='Necessary configuration values for this module to run.')
     parser.add_argument('--config', action='store', type=str, dest='voc_config', default=None,
                         help='The config file used for this vocabulary in skosify. NYI')
-    parser.add_argument('-all', action='store_true', dest='run_update',
-                        help='Run the main update script to update the tripple store from the google spreadsheet.')
+    parser.add_argument('-a', action='store_true', dest='run_update',
+                        help='Run the main update script to update the triple store from the google spreadsheet.')
+    parser.add_argument('-n', action='store', type=int, dest='number_of_lines', default=-1,
+                        help='Number of lines the update should run through in the google sheets.')
     parser.add_argument('-s', action='store', dest='name', default=None,
                         help='The name of a specific thesaurus to be loaded/updated. Accepts one of the following '
                              'values: {}.'.format(specific_functions.keys()))
@@ -88,7 +90,7 @@ def main():
     logging.debug('Base path: ' + data_path)
     try:
         if args.run_update:
-            update_fuseki(config)
+            update_fuseki(config, args.number_of_lines)
 
         if args.get_request:
             get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
