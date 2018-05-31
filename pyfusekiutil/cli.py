@@ -34,23 +34,33 @@ def main():
     parser.add_argument('-s', action='store', dest='name', default=None,
                         help='The name of a specific thesaurus to be loaded/updated. Accepts one of the following '
                              'values: {}.'.format(specific_functions.keys()))
+    parser.add_argument('-f', dest='file', action='store', default='output.ttl', help='Define a file path or file name.'
+                                                                                      'Used for skosify, put requests '
+                                                                                      'and get requests. The default'
+                                                                                      ' is "output.ttl"')
+    parser.add_argument('-delete', dest='delete_request', action='store_true',
+                        help='Delete a specific graph from the Fuseki store. Requires a --uri to be specified.')
+    parser.add_argument('-put', dest='put_request', action='store_true',
+                        help='Create or replace a specific graph on the Fuseki store. '
+                             'Requires a [--uri URI] to be specified and the [-f FILE_PATH] full path to the file '
+                             'containing the RDF data (in turtle (.ttl) format).')
+    parser.add_argument('-get', dest='get_request', action='store_true',
+                        help='Get a specific graph from the Fuseki store and store it in a local file '
+                             '(in turtle (.ttl) format).')
+    parser.add_argument('--uri', nargs='?', default='', help='Define a graph URI for Fuseki operations.')
+    parser.add_argument('-diff', dest='diff', action='store_true',
+                        help='Generate json-files which show the differences between the Fuseki triple store and the '
+                             'Google Spreadsheet. In terms of what graphs are or should be defined.')
 
-    parser.add_argument('-delete', dest='delete_request', action='store_true')
-    parser.add_argument('-put', dest='put_request', action='store_true')
-    parser.add_argument('-get', dest='get_request', action='store_true')
-    parser.add_argument('-diff', dest='diff', action='store_true')
-    parser.add_argument('-f', dest='file', action='store', default='output.ttl')
-    parser.add_argument('--uri', nargs='?', default='')
-    parser.add_argument('--url', nargs='?', default='')
-    parser.add_argument('-t', dest='skosify', action='store_true', help='skosfiy(args.url, config, args.label, '
-                                                                        'args.file, namespace=args.namespace, '
-                                                                        'default_language=args.default_language)')
-    parser.add_argument('-l', dest='label', action='store')
-    parser.add_argument('-k', dest='download', action='store_true', default=False,
-                        help='Download the file and do not just load it from disc.')
-    parser.add_argument('--namespace', action='store', default=None)
-    parser.add_argument('--default-language', action='store', default=None)
-
+    parser.add_argument('-t', dest='skosify', action='store_true',
+                        help='Can be used to skosify a vocabulary the same way the main update loop does. This should '
+                             ' help with debugging when Skosify creates a result which Skosmos cannot understand. '
+                             'skosfiy(args.url, config, args.label, args.file, namespace=args.namespace, '
+                             'default_language=args.default_language)')
+    parser.add_argument('--url', nargs='?', default='', help='Add a url. Used to skosify a vocabulary.')
+    parser.add_argument('-l', dest='label', action='store', help='Add a label for skosify.')
+    parser.add_argument('--namespace', action='store', default=None, help='The namespace for skosify.')
+    parser.add_argument('--default-language', action='store', default=None, help='The default language for skosify.')
     parser.add_argument('-d', dest='debug', action='store_true', help='Ignore default logging configuration and simply '
                                                                       'log to stdout.')
 
@@ -94,6 +104,9 @@ def main():
 
         if args.get_request:
             get_graph(args.uri, data_path + config['data']['vocabulary'] + args.file)
+
+        if args.put_request:
+            put_graph(args.uri, args.file)
 
         if args.diff:
             credentials = config['data']['base'] + config['data']['credentials']
