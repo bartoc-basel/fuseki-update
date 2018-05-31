@@ -4,7 +4,7 @@ from configparser import ConfigParser
 import argparse
 
 from pyfusekiutil.core_fuseki_update import update_fuseki
-from pyfusekiutil.fuseki_utility import get_graph
+from pyfusekiutil.fuseki_utility import get_graph, delete_graph
 from pyfusekiutil.fuseki_utility import create_diff
 from pyfusekiutil.skosify_utility import skosfiy
 from pyfusekiutil.updates import *
@@ -51,7 +51,6 @@ def main():
     parser.add_argument('-diff', dest='diff', action='store_true',
                         help='Generate json-files which show the differences between the Fuseki triple store and the '
                              'Google Spreadsheet. In terms of what graphs are or should be defined.')
-
     parser.add_argument('-t', dest='skosify', action='store_true',
                         help='Can be used to skosify a vocabulary the same way the main update loop does. This should '
                              ' help with debugging when Skosify creates a result which Skosmos cannot understand. '
@@ -107,6 +106,9 @@ def main():
 
         if args.put_request:
             put_graph(args.uri, args.file)
+
+        if args.delete_request:
+            delete_graph(args.uri)
 
         if args.diff:
             credentials = config['data']['base'] + config['data']['credentials']
