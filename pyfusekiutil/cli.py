@@ -121,7 +121,7 @@ def main():
 
         if args.name is not None:
             if args.name in specific_functions.keys():
-                specific_functions[args.name](config, download=args.download)
+                specific_functions[args.name](config)
 
         if args.skosify:
             skosfiy(args.url, config, args.label, args.file, namespace=args.namespace,

@@ -14,7 +14,7 @@ from pyfusekiutil.rdf_utility import *
 """Various update functions for Thesauri/Ontologies which are not in SKOS or proper SKOS."""
 
 
-def update_yarn(config, download=False):
+def update_yarn(config):
     """Download and transform Yet Another RussNet."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -43,7 +43,7 @@ def update_yarn(config, download=False):
     put_graph('http://depot.nlpub.ru/rtlod/yarn.ttl', open(path + file_name + '.ttl').read())
 
 
-def update_unldc(config, download=False):
+def update_unldc(config):
     """Download and transform Universal Dictionary Concepts."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -72,7 +72,7 @@ def update_unldc(config, download=False):
     put_graph('http://unl.ru/', open(path + file_name + '.ttl').read())
 
 
-def update_rusthes(config, download=False):
+def update_rusthes(config):
     """Download and transform Тезаурус РуТез."""
 
     path = config['data']['base'] + config['data']['vocabulary'] + 'rus/'
@@ -101,7 +101,7 @@ def update_rusthes(config, download=False):
     put_graph('http://labinform.ru/pub/ruthes/', open(path + file_name + '.ttl').read())
 
 
-def construct_aat_getty(config, download=False):
+def construct_aat_getty(config):
     """Download and transform the getty thesaurus AAT."""
     aat_full = 'http://vocab.getty.edu/dataset/aat/full.zip'
     path = config['data']['base'] + config['data']['vocabulary'] + 'aat/'
@@ -110,23 +110,22 @@ def construct_aat_getty(config, download=False):
 
     file_name = 'aat_full.ttl'
 
-    if download:
-        logging.info('Downloading "The Art & Architecture Thesaurus".')
-        response = requests.get(aat_full)
-        if response.ok:
-            logging.info('Download was successful.')
-            buffer = io.BytesIO(response.content)
-            z = zipfile.ZipFile(buffer)
-            for n, i in zip(z.namelist(), z.infolist()):
-                logging.info('Extracting archives...', n)
-                tmp = z.read(i).decode('utf-8')
-                with open(path + str(n), 'w') as file:
-                    file.write(tmp)
-                    logging.info('Extracted %s to %s', n, path)
-        else:
-            logging.critical('Was unable to download the file. Exit program.')
-            import sys
-            sys.exit(1)
+    logging.info('Downloading "The Art & Architecture Thesaurus".')
+    response = requests.get(aat_full)
+    if response.ok:
+        logging.info('Download was successful.')
+        buffer = io.BytesIO(response.content)
+        z = zipfile.ZipFile(buffer)
+        for n, i in zip(z.namelist(), z.infolist()):
+            logging.info('Extracting archives...', n)
+            tmp = z.read(i).decode('utf-8')
+            with open(path + str(n), 'w') as file:
+                file.write(tmp)
+                logging.info('Extracted %s to %s', n, path)
+    else:
+        logging.critical('Was unable to download the file. Exit program.')
+        import sys
+        sys.exit(1)
 
     logging.info('Begin parsing of the ontology.')
     aat = Graph()
@@ -147,7 +146,7 @@ def construct_aat_getty(config, download=False):
     put_graph('http://vocab.getty.edu/aat/', open(path + file_name).read())
 
 
-def update_skos(config, download=False):
+def update_skos(config):
     """Download, transform and upload the SKOS vocabulary."""
     uri = 'http://www.w3.org/2004/02/skos/core'
     path = config['data']['base'] + config['data']['vocabulary'] + 'skos/'
@@ -176,7 +175,7 @@ def update_skos(config, download=False):
     put_graph(uri, open(path + file_name).read())
 
 
-def update_npg_ontology(config, download=False):
+def update_npg_ontology(config):
     url = 'https://raw.githubusercontent.com/springernature/public-npg-domain-ontology/master/npg-relations-ontology.ttl'
     uri = 'http://ns.nature.com/relations/'
 
@@ -213,7 +212,7 @@ fast_urls_graph_names = [
 ]
 
 
-def update_fast(config, download=False):
+def update_fast(config):
     logger = logging.getLogger(__name__)
     temp_path = config['data']['base'] + config['data']['temporary']
 
@@ -309,7 +308,7 @@ def update_fast(config, download=False):
         logger.info('Uploaded graph to Fuseki.')
 
 
-def update_getty_program_ontology(config, download=False):
+def update_getty_program_ontology(config):
     """Downloading, transforming and uploadinmg the Getty Program Ontology."""
 
     ontology = 'http://vocab.getty.edu/ontology.rdf'
